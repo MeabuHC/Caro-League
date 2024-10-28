@@ -10,7 +10,9 @@ import { useUserContext } from "../context/UserContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, setUser, loading } = useUserContext();
+  const { user, setUser } = useUserContext();
+  const [loading, setLoading] = useState(false);
+
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
   //Navigate to home if user already login
@@ -60,13 +62,15 @@ const Login = () => {
       type: "password",
       placeholder: "Password",
       name: "password",
-      minLength: 6,
+      maxLength: 20,
       required: true,
     },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
     try {
       const data = await axios.post(`${baseUrl}/login`, formData, {
         headers: { "Content-Type": "application/json" },
@@ -85,6 +89,8 @@ const Login = () => {
           error.response?.data?.message || "Network error. Please try again.",
         success: "",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,6 +108,7 @@ const Login = () => {
             messages={messages} // Pass combined messages
             formData={formData}
             setFormData={setFormData}
+            loading={loading}
           />
         </div>
       </div>

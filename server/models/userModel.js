@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 
+//Password regex
+const regex =
+  /^(?=(?:[^a-zA-Z]*[a-zA-Z]){1})(?=(?:[^\d]*\d){1})(?=(?:[^\W_]*[\W_]){1}).{3,}$/;
+
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -24,7 +28,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters long"],
+      maxlength: [20, "Password cannoto exceed 20 characters"],
       select: false,
+      validate: {
+        validator: function (v) {
+          return regex.test(v);
+        },
+        message:
+          "Password must contain at least one letter, one number, and one special character.",
+      },
+    },
+    passwordChangedAt: {
+      type: Date,
     },
     createdAt: {
       type: Date,
@@ -61,6 +76,29 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
+
+//Change password
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password") || this.isNew) return next();
+
+  //Login Token is invalid if user changes password after the token was issued
+  next();
+  this.passwordChangedAt = Date.now() - 1000; //Minus 1 seconds to synchronise
+});
+
+//JWT saves seconds, date.getTime() return miliseconds
+userSchema.methods.changePasswordAfter = function (JWTTimeStamp) {
+  if (this.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimeStamp < changedTimeStamp;
+  }
+
+  //Haven't change password
+  return false;
+};
 
 userSchema.methods.correctPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

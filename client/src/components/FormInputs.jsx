@@ -13,6 +13,7 @@ const FormInputs = ({ inputs, formData, onChange }) => {
           onChange={onChange}
           name={input.name}
           minLength={input.minLength}
+          maxLength={input.maxLength}
           className={styles.inputField}
           readOnly={input.readOnly}
           required={input.required}

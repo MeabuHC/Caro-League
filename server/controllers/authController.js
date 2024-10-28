@@ -6,6 +6,7 @@ import {
   signupSchema,
   loginSchema,
   setupSchema,
+  changePasswordSchema,
 } from "../validations/userValidation.js";
 import validateInput from "../utils/validateInput.js";
 import { sendVerifyEmail } from "../utils/email.js";
@@ -187,7 +188,13 @@ export const protect = catchAsync(async (req, res, next) => {
       new AppError("The user belonging to this token no longer exists!", 401)
     );
   }
-  //
+
+  //Check if user changed password after token was issued
+  if (freshUser.changePasswordAfter(decoded.iat)) {
+    return next(
+      new AppError("User recently changed password! Please log in again.", 401)
+    );
+  }
 
   // Pass the user to the next middleware
   req.user = freshUser;
@@ -206,3 +213,26 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+
+export const changePassword = catchAsync(async (req, res, next) => {
+  validateInput(req.body, changePasswordSchema);
+  const user = await userDAO.getUserById(req.query, req.user.id, true);
+  if (!user) {
+    return next(new AppError("No user found with that ID", 404));
+  }
+
+  //Wrong password
+  if (!(await user.correctPassword(req.body.oldPassword))) {
+    return next(new AppError("Your current password is wrong.", 401));
+  }
+
+  //Handle change password
+  user.password = req.body.newPassword;
+  await user.save();
+
+  //Remove password from output
+  user.password = undefined;
+
+  //Send new token
+  await createSendTokens(user, res);
+});

@@ -8,6 +8,7 @@ import axios from "axios";
 
 const Signup = () => {
   const baseUrl = import.meta.env.VITE_BASE_URL;
+  const [loading, setLoading] = useState(false);
 
   // Define state for messages
   const [messages, setMessages] = useState({
@@ -50,9 +51,7 @@ const Signup = () => {
     e.preventDefault(); // Prevent default form submission behavior
     setMessages({}); // Reset messages
 
-    // Wait for 1 second before proceeding
-    await delay(1000);
-
+    setLoading(true);
     try {
       const { data } = await axios.post(`${baseUrl}/signup`, formData, {
         headers: { "Content-Type": "application/json" },
@@ -63,11 +62,17 @@ const Signup = () => {
         success: "A verification email has been sent. Please check your inbox.",
       });
     } catch (error) {
+      console.log("This is error");
+      console.log(error);
       setMessages({
         error:
-          error.response?.data?.message || "Network error. Please try again.",
+          error.response?.data?.message ||
+          error.response?.data ||
+          "Network error. Please try again.",
         success: "",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,6 +88,7 @@ const Signup = () => {
           messages={messages}
           formData={formData}
           setFormData={setFormData}
+          loading={loading}
         />
       </div>
     </div>

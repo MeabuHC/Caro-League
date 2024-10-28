@@ -10,5 +10,10 @@ router.route("/logout").post(authController.logout);
 router.route("/verify-email").post(authController.verifyEmail);
 router.route("/setup").post(authController.setup);
 router.post("/refresh-token", authController.refreshToken);
+router.patch(
+  "/change-password",
+  authController.protect,
+  authController.changePassword
+);
 
 export default router;

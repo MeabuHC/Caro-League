@@ -18,14 +18,18 @@ class UserDAO {
     return await features.sqlQuery;
   }
 
-  async getUserById(queryObj, id) {
-    const user = await User.findById(id); // Fetch the user by ID
+  async getUserById(queryObj, id, withPassword = false) {
+    const user = await User.findById(id);
 
     if (!user || user.role === "admin") {
-      throw new AppError("User not found", 404); // Handle user not found
+      throw new AppError("User not found", 404);
     }
 
-    const features = new APIFeatures(User.findById(id), queryObj).limitFields();
+    let query = User.findById(id);
+
+    if (withPassword) query = query.select("+password");
+
+    const features = new APIFeatures(query, queryObj).limitFields();
     return await features.sqlQuery;
   }
 

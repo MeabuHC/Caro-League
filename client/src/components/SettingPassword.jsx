@@ -4,6 +4,10 @@ import styles from "../styles/components/SettingPassword.module.css";
 import { SettingPasswordInput } from "./SettingPasswordInput";
 import { useEffect, useState } from "react";
 import { SettingButtons } from "./SettingButtons";
+import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
+import Alert from "antd/es/alert/Alert";
+import { WarningOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import delay from "../utils/delay";
 
 export function SettingPassword() {
   const { user } = useUserContext();
@@ -15,6 +19,11 @@ export function SettingPassword() {
 
   const [validNewPassword, setValidNewPassword] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
+  const [messages, setMessages] = useState({
+    error: "",
+    success: "",
+  });
+  const [loading, setLoading] = useState(false);
 
   //Valid to submit
   const isValid =
@@ -39,11 +48,35 @@ export function SettingPassword() {
       newPassword: "",
       confirmPassword: "",
     });
+    setMessages({
+      error: "",
+      success: "",
+    });
   };
 
   //Handle change password
-  const handleSave = () => {
-    console.log("Hello");
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosWithRefreshToken(
+        "/change-password",
+        "patch",
+        passwords
+      );
+
+      setMessages((prev) => ({
+        ...prev,
+        success: "Your password has been successfully changed.",
+      }));
+      setPasswords({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (error) {
+      setMessages((prev) => ({
+        ...prev,
+        error: error.response.data.message,
+      }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,11 +109,38 @@ export function SettingPassword() {
           type="confirmPassword"
         />
       </div>
+      {messages["error"] && (
+        <Alert
+          description={
+            <span>
+              <WarningOutlined /> {messages["error"]}
+            </span>
+          }
+          type="error"
+          closable
+          className={styles.error}
+          onClose={() => setMessages({ error: "", success: "" })}
+        />
+      )}
+      {messages["success"] && (
+        <Alert
+          description={
+            <span>
+              <CheckCircleOutlined /> {messages["success"]}
+            </span>
+          }
+          type="success"
+          closable
+          className={styles.success}
+          onClose={() => setMessages({ error: "", success: "" })}
+        />
+      )}
       <SettingButtons
         isChanged={isChanged}
         isValid={isValid}
         onCancel={handleCancel}
         onSave={handleSave}
+        loading={loading}
       />
     </>
   );

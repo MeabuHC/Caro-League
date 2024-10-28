@@ -29,7 +29,18 @@ const handleValidationErrorDB = (err) => {
 };
 
 const handleUserValidationErrorDB = (err) => {
-  return new AppError(err.message, 400);
+  const errors = Object.values(err.errors).map((el) => el.message);
+
+  const passwordError = errors.find((message) => message.includes("Password"));
+
+  if (passwordError) {
+    return new AppError(
+      "Your password must contain at least one letter, one number, and one special character.",
+      400
+    );
+  }
+
+  return new AppError(errors.join(". "), 400);
 };
 
 const handleJWTError = () => {

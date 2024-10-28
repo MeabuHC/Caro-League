@@ -23,9 +23,12 @@ const Setup = () => {
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const [isVerified, setIsVerified] = useState(false); // Track verification status
 
   useEffect(() => {
+    setLoading(true);
     const verifyEmail = async () => {
       try {
         // Send the token in the request body
@@ -48,6 +51,8 @@ const Setup = () => {
             error.response?.data?.message || "Network error. Please try again.",
           success: "",
         });
+      } finally {
+        setLoading(false);
       }
     };
     verifyEmail();
@@ -126,6 +131,7 @@ const Setup = () => {
             messages={messages}
             formData={formData}
             setFormData={setFormData}
+            loading={loading}
           />
         )}
       </div>

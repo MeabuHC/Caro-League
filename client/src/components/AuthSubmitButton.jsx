@@ -1,18 +1,27 @@
 // AuthSubmitButton.js
 import React from "react";
 import { Link } from "react-router-dom";
-import styles from "../styles/components/AuthSubmitButton.module.css"; // Adjust the path as needed
+import styles from "../styles/components/AuthSubmitButton.module.css";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
-const AuthSubmitButton = ({ type }) => {
+const AuthSubmitButton = ({ type, loading }) => {
+  const buttonText =
+    type === "signup" ? "SIGN UP" : type === "setup" ? "SETUP" : "LOG IN";
+
   return (
     <>
-      <input
-        type="submit"
-        value={
-          type === "signup" ? "SIGN UP" : type === "setup" ? "SETUP" : "LOG IN"
-        }
-        className={styles.btnSubmit}
-      />
+      <button type="submit" className={styles.btnSubmit} disabled={loading}>
+        {loading ? (
+          <Spin
+            indicator={<LoadingOutlined spin />}
+            size="small"
+            style={{ color: "#f46119" }}
+          />
+        ) : (
+          buttonText
+        )}
+      </button>
 
       <span className={styles.auth_link}>
         {type === "signup"

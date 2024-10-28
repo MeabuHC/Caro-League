@@ -11,6 +11,7 @@ const AuthForm = ({
   messages,
   formData,
   setFormData,
+  loading = false,
 }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +45,7 @@ const AuthForm = ({
       )}
 
       {/* Use the new AuthSubmitButton component */}
-      <AuthSubmitButton type={type} />
+      <AuthSubmitButton type={type} loading={loading} />
     </form>
   );
 };
