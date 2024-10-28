@@ -1,0 +1,39 @@
+.buttons {
+  display: flex;
+  flex-direction: row;
+  margin-top: auto;
+  gap: 0.7rem;
+}
+
+.buttons .button {
+  flex: 1;
+  width: 1.4rem;
+  height: 2rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 0.8rem;
+  border-radius: 0.2rem;
+  padding: 0.4rem 0.2rem;
+}
+
+.disabled {
+  border: 2px solid rgba(138, 138, 138, 0.1);
+  background-color: transparent;
+  color: #525252;
+  pointer-events: none;
+}
+
+.active {
+  color: white;
+  background-color: #d13639;
+}
+
+.active_cancel {
+  color: white;
+  background-color: #525252;
+}
+
+.disappear {
+  opacity: 0;
+  pointer-events: none;
+}

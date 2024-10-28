@@ -1,0 +1,23 @@
+.errorMessage {
+  width: 100%;
+  text-align: center;
+  height: auto;
+  margin-bottom: 20px;
+  color: #d9534f;
+  background-color: #f8d7da;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.successMessage {
+  width: 100%;
+  text-align: center;
+  height: auto;
+  margin-bottom: 20px;
+  color: #155724;
+  background-color: #d4edda;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}

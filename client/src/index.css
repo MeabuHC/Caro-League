@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap");
+@import url("https://db.onlinewebfonts.com/c/b621d1ffb46493164fd62fb7a83ab0ff?family=Mark+W05+Medium");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar {
+  width: 0.4rem;
+  background-color: none;
+}
+
+::-webkit-scrollbar-track {
+  margin-block: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #ffffff26;
+  border-radius: 1rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #ffffff40;
+}
+
+.container {
+  padding-right: 0.2rem;
+  min-width: 100%;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.ant-layout-header {
+  padding: 0;
+}
+
+.ant-dropdown-menu {
+  top: -5px;
+}
+
+.ant-layout-sider-trigger {
+  background: #ff6104 !important;
+}

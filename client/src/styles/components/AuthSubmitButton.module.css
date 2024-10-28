@@ -1,0 +1,27 @@
+.btnSubmit {
+  width: 100%;
+  border-radius: 100px;
+  height: 47px;
+  background-color: rgba(244, 97, 25, 0.05);
+  color: #f46119;
+  border: none;
+  transition: 0.5s ease;
+  margin-bottom: 20px;
+}
+
+.btnSubmit:hover {
+  background-color: #f46119;
+  color: #fff;
+  cursor: pointer;
+}
+
+.auth_link {
+  font-size: 16px;
+  color: #6c6c6c;
+  margin-bottom: 20px;
+}
+
+.auth_link a {
+  color: #f46119;
+  text-decoration: none;
+}

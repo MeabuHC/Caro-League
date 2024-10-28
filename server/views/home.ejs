@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tic-tac-toe</title>
+        <link rel="stylesheet" href="styles/home.css">
+        <script src="/socket.io/socket.io.js"></script>
+        <style>
+
+    </style>
+    </head>
+    <body>
+        <div class="navbar">
+            <div class="username"><%= username %></div>
+            <button class="logout-button">Logout</button>
+        </div>
+        <div class="main">
+            <div class="turn-container">
+                <h3>Turn For</h3>
+                <div class="turn-box align">X</div>
+                <div class="turn-box align">O</div>
+                <div class="bg"></div>
+            </div>
+            <div id="status-message">
+            </div>
+            <div class="main-grid">
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+                <div class="box align"></div>
+            </div>
+            <h2 id="result"></h2>
+            <button id="start-game" class="button">Start Game</button>
+            <button id="play-again" class="button">Play Again</button>
+            <button id="leave-room" class="button">Leave room</button>
+        </div>
+        <script type="module" src="js/home.js   "></script>
+    </body>
+</html>

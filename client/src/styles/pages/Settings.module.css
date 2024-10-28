@@ -1,0 +1,19 @@
+.settings_container {
+  width: 100%;
+  max-height: 100%;
+  background-color: #0a0a0a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 70rem;
+  padding: 5rem;
+  gap: 2rem;
+}
