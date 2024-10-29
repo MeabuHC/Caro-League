@@ -1,4 +1,5 @@
 import styles from "../styles/components/SettingItem.module.css";
+import { SettingAvatar } from "./SettingAvatar";
 import { SettingPassword } from "./SettingPassword";
 import { SettingUsername } from "./SettingUsername";
 
@@ -10,6 +11,7 @@ export function SettingItem({ header, content, type }) {
         <p>{content}</p>
       </div>
       <div className={styles.right_setting}>
+        {type === "avatar" && <SettingAvatar />}
         {type === "username" && <SettingUsername />}
         {type === "password" && <SettingPassword />}
       </div>

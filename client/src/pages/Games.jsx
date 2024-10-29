@@ -2,8 +2,6 @@ import React, { useContext } from "react";
 import { useUserContext } from "../context/UserContext";
 import styles from "../styles/pages/Games.module.css"; // Create a new CSS module for styling
 
-const baseUrl = import.meta.env.VITE_BASE_URL;
-
 export default function Games() {
   const { user } = useUserContext();
 
@@ -11,7 +9,7 @@ export default function Games() {
     <div className={`${styles.lobby_container} container`}>
       <div className={styles.card}>
         <div className={styles.top_card}>
-          <img src={`${baseUrl}/${user.avatarUrl}`} alt="Avatar"></img>
+          <img src={`${user.avatarUrl}`} alt="Avatar"></img>
           <span>{user.username}</span>
         </div>
         {/* Rank */}

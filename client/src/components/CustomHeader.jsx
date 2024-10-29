@@ -63,7 +63,7 @@ const CustomHeader = () => {
           >
             <a onClick={(e) => e.preventDefault()}>
               <img
-                src={`${baseUrl}/${user.avatarUrl}`}
+                src={`${user.avatarUrl}`}
                 className={styles.avatar}
                 alt="Avatar"
               />

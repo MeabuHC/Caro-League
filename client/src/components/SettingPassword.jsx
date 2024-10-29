@@ -7,7 +7,6 @@ import { SettingButtons } from "./SettingButtons";
 import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
 import Alert from "antd/es/alert/Alert";
 import { WarningOutlined, CheckCircleOutlined } from "@ant-design/icons";
-import delay from "../utils/delay";
 
 export function SettingPassword() {
   const { user } = useUserContext();
@@ -108,33 +107,33 @@ export function SettingPassword() {
           label={"CONFIRM PASSWORD"}
           type="confirmPassword"
         />
+        {messages["error"] && (
+          <Alert
+            description={
+              <span>
+                <WarningOutlined /> {messages["error"]}
+              </span>
+            }
+            type="error"
+            closable
+            className={styles.error}
+            onClose={() => setMessages({ error: "", success: "" })}
+          />
+        )}
+        {messages["success"] && (
+          <Alert
+            description={
+              <span>
+                <CheckCircleOutlined /> {messages["success"]}
+              </span>
+            }
+            type="success"
+            closable
+            className={styles.success}
+            onClose={() => setMessages({ error: "", success: "" })}
+          />
+        )}
       </div>
-      {messages["error"] && (
-        <Alert
-          description={
-            <span>
-              <WarningOutlined /> {messages["error"]}
-            </span>
-          }
-          type="error"
-          closable
-          className={styles.error}
-          onClose={() => setMessages({ error: "", success: "" })}
-        />
-      )}
-      {messages["success"] && (
-        <Alert
-          description={
-            <span>
-              <CheckCircleOutlined /> {messages["success"]}
-            </span>
-          }
-          type="success"
-          closable
-          className={styles.success}
-          onClose={() => setMessages({ error: "", success: "" })}
-        />
-      )}
       <SettingButtons
         isChanged={isChanged}
         isValid={isValid}

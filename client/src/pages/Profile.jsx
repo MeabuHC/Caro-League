@@ -4,8 +4,6 @@ import styles from "../styles/pages/Profile.module.css";
 import { useUserContext } from "../context/UserContext";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 
-const baseUrl = import.meta.env.VITE_BASE_URL;
-
 export default function Profile() {
   const { user } = useUserContext();
   return (
@@ -14,7 +12,7 @@ export default function Profile() {
         <div className={styles.cover_img}></div>
         <div className={styles.profile_header_container}>
           <div className={styles.avatar_container}>
-            <img src={`${baseUrl}/${user.avatarUrl}`} alt="Avatar"></img>
+            <img src={`${user.avatarUrl}`} alt="Avatar"></img>
           </div>
           <div className={styles.profile_username}>
             <span>{user.username}</span>
