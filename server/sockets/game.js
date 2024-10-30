@@ -10,10 +10,11 @@ const Game = {
     // Get the sockets in the room
     console.log("This is roomMap from startGame");
     console.log(roomMap);
+
     const roomObj = roomMap.rooms.get(roomId);
     const socketsInRoom = Array.from(roomObj.players.keys());
 
-    //Reset the board in room
+    // Reset the board in room
     console.log("Run reset board!");
     roomObj.resetBoard();
     roomObj.startGame("X");
@@ -22,24 +23,25 @@ const Game = {
 
     // Emit to each player with their assigned turn
     gameNamespace.to(socketsInRoom[0]).emit("start-match", roomObj.toObject()); // First player
-
     gameNamespace.to(socketsInRoom[1]).emit("start-match", roomObj.toObject()); // Second player
   },
 
-  //Final function for find match
+  // Final function for finding a match
   findMatch: async (socket, user, gameNamespace) => {
+    // Check if the user is already in a room
     if (roomMap.getRoomForUser(user.id)) {
       socket.emit("already-in-room");
       socket.disconnect();
       return;
     }
+
     let roomId; // Variable to store the room
 
-    //Find room based on logic
+    // Find room based on logic
     roomId = await findRoomId(gameNamespace);
 
     // Join the determined room and update room map
-    console.log("User join room: " + roomId);
+    console.log("User joins room: " + roomId);
     socket.join(roomId);
     roomMap.updateRoomMap(gameNamespace);
     roomMap.rooms.get(roomId).addPlayer(socket.id, user);
@@ -47,33 +49,40 @@ const Game = {
     console.log("This is room: ");
     console.log(roomMap.rooms.get(roomId));
 
-    //Check condition to start game
-    if (isReadyToStartGame(roomId)) Game.startGame(roomId, gameNamespace);
-    else waitMatch(roomId, socket);
+    // Check condition to start the game
+    if (isReadyToStartGame(roomId)) {
+      Game.startGame(roomId, gameNamespace);
+    } else {
+      waitMatch(roomId, socket);
+    }
   },
 
-  updateRoomBoard: async (symbol, index, socket, gameNamespace) => {
+  // Update the room board with the player's move
+  updateRoomBoard: async (index, socket, gameNamespace) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
     const players = roomObj.players;
-    roomObj.makeMove(index, symbol, socket.id);
+    const symbol = roomObj.turn;
+
+    roomObj.makeMove(index, socket.id);
 
     // Emit move update to both players
     gameNamespace
       .to(roomObj.id)
       .emit("receiveMove", symbol, index, roomObj.toObject());
 
-    // Check if it's a win or draw
+    // Check if there's a win or a draw
     const isWinObj = roomObj.isWin();
     if (isWinObj[0]) {
       const winner = players.get(socket.id);
       const loser = [...players].find(([id]) => id !== socket.id)[1];
-      // Emit 'winner' event to the current socket (player who made the move) with the winning index
+
+      // Emit 'winner' event to the current player
       socket.emit("winner", isWinObj[1]);
 
-      // Emit 'loser' event to the other socket in the room with the winning index
+      // Emit 'loser' event to the other player
       socket.to(roomObj.id).emit("loser", isWinObj[1]);
 
-      // Fix the stats for winner and loser
+      // Update stats for winner and loser
       await updatePlayerStats(winner, loser, "result", 5);
 
       // Update room status
@@ -82,6 +91,8 @@ const Game = {
       // Emit draw event to both players
       const playerArray = Array.from(players.values());
       gameNamespace.to(roomObj.id).emit("draw");
+
+      // Update stats for both players
       await updatePlayerStats(playerArray[0], playerArray[1], "draw", 0);
 
       // Update room status
@@ -89,9 +100,11 @@ const Game = {
     }
   },
 
+  // Handle socket disconnection
   handleDisconnect: (socket, gameNamespace) => {
     console.log(`${socket.id} disconnected!`);
-    //Get room by socket
+
+    // Get room by socket
     const roomObj = roomMap.getRoomBySocketId(socket.id);
     if (roomObj) {
       const players = roomObj.players;
@@ -106,9 +119,8 @@ const Game = {
           // Update stats and notify the remaining player
           updatePlayerStats(winner, loser, "result", 20);
           socket.to(roomObj.id).emit("opponent-disconnect");
-        }
-        // If the game has ended
-        else {
+        } else {
+          // If the game has ended
           socket.to(roomObj.id).emit("opponent-leave-room");
         }
       }
@@ -121,7 +133,7 @@ const Game = {
     roomMap.updateRoomMap(gameNamespace);
   },
 
-  //Handle receive rematch request
+  // Handle receive rematch request
   handleRematchRequest: (socket) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
     socket
@@ -129,7 +141,7 @@ const Game = {
       .emit("receive-rematch-request", roomObj.players.get(socket.id).username);
   },
 
-  //Handle accept rematch request
+  // Handle accept rematch request
   handleAcceptRematch: (socket, gameNamespace) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
     Game.startGame(roomObj.id, gameNamespace);
@@ -138,7 +150,7 @@ const Game = {
 
 //---------- UTILS ------------------//
 
-//Wait for other player to join
+// Wait for another player to join
 function waitMatch(room, socket) {
   console.log("Sending waiting signal!");
   socket.emit("wait-match", room);
@@ -152,8 +164,7 @@ function isReadyToStartGame(roomName) {
 
 // Find a valid roomId
 async function findRoomId(gameNamespace) {
-  //gameNamespace.adapter.rooms : return a map of roomId and a set of sockets id
-  // const rooms = Array.from(gameNamespace.adapter.rooms); // Get all rooms
+  // Iterate through existing rooms to find a room with one player
   for (const [roomId, roomObj] of roomMap.rooms) {
     if (
       roomObj.players.size === 1 &&
@@ -168,13 +179,13 @@ async function findRoomId(gameNamespace) {
   return await createUniqueRoomId(gameNamespace); // Generate a new room ID
 }
 
-//Give a random room id
+// Generate a random room ID
 function generateRoomId() {
   const randomNumber = Math.floor(Math.random() * 10000); // Adjust the range as needed
   return `room${randomNumber}`;
 }
 
-// Return the unique room ID
+// Return a unique room ID
 async function createUniqueRoomId(gameNamespace) {
   let roomId;
   let roomExists = true;
@@ -187,10 +198,11 @@ async function createUniqueRoomId(gameNamespace) {
   return roomId;
 }
 
-//Update after status after the match
+// Update player stats after the match
 async function updatePlayerStats(player1, player2, status, elo) {
   const winnerStats = player1.gameStats;
   const loserStats = player2.gameStats;
+
   winnerStats.totalGamesPlayed += 1;
   loserStats.totalGamesPlayed += 1;
 
@@ -212,29 +224,32 @@ async function updatePlayerStats(player1, player2, status, elo) {
 
 //-----------------  EXPORT HANDLER --------------//
 const gameHandlers = async (socket, gameNamespace) => {
-  console.log("New client connected: " + socket.id); //New player
+  console.log("New client connected: " + socket.id); // New player
+
   // Extract user ID from JWT token
   const token = getTokenFromCookies(socket.request.headers.cookie);
   const decoded = await getTokenPayload(token);
   const user = await User.findById(decoded.id);
-  socket.on("find-match", () => Game.findMatch(socket, user, gameNamespace)); // Handle find match
+
+  // Handle finding a match
+  socket.on("find-match", () => Game.findMatch(socket, user, gameNamespace));
 
   // Sending player move to the other player
-  socket.on("makeMove", async (symbol, index) => {
-    await Game.updateRoomBoard(symbol, index, socket, gameNamespace);
+  socket.on("makeMove", async (index) => {
+    await Game.updateRoomBoard(index, socket, gameNamespace);
   });
 
-  //Handle rematch request
+  // Handle rematch request
   socket.on("rematch-request", () => {
     Game.handleRematchRequest(socket);
   });
 
-  //Handle accept rematch request
+  // Handle accept rematch request
   socket.on("accept-rematch", () => {
     Game.handleAcceptRematch(socket, gameNamespace);
   });
 
-  // Handle socket disconnection : Refresh page
+  // Handle socket disconnection
   socket.on("disconnect", () => {
     Game.handleDisconnect(socket, gameNamespace);
   });

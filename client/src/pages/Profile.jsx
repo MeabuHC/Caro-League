@@ -70,11 +70,6 @@ export default function Profile() {
             <div className={styles.fill_bottom}></div>
           </div>
         </div>
-        <div>Hello</div>
-        <div>Hello</div>
-        <div>Hello</div>
-        <div>Hello</div>
-        <div>Hello</div>
       </div>
     </>
   );

@@ -6,7 +6,7 @@ import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
 
 export function SettingAvatar() {
   const inputRef = useRef(null);
-  const [file, setFile] = useState(null); // File as the single state for preview and upload
+  const [file, setFile] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isChanged, setIsChanged] = useState(false);
@@ -22,9 +22,10 @@ export function SettingAvatar() {
   const handleImageChange = (event) => {
     const selectedFile = event.target.files[0];
 
+    console.log(selectedFile);
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setError(null);
-      setFile(selectedFile); // Store the file in state
+      setFile(selectedFile); // Store the file
       setIsChanged(true);
       setIsValid(true);
     } else {

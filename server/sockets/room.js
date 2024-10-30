@@ -7,7 +7,7 @@ class Room {
     this.isGameStarted = false;
     this.isGameOver = false;
     this.board = this.initializeBoard();
-    this.turn = "X"; // To track whose turn it is
+    this.turn = "X"; // Track which player turn
     this.symbols = new Map(); // To store the symbols assigned to players (X or O)
   }
 
@@ -36,13 +36,10 @@ class Room {
   }
 
   makeMove(index, symbol, socketId) {
-    console.log(symbol, this.turn);
     if (this.isGameOver === true) throw new Error("The game has over!"); //Game over
     if (this.isGameStarted === false)
       throw new Error("The game has not started!"); //Game not started
-    if (symbol != this.turn) throw new Error("Not user turn!"); //Not user turn
-    if (this.symbols.get(socketId) != symbol)
-      throw new Error("User move is tampered"); //User move not the one assigned
+    if (!this.isPlayerTurn(socketId)) throw new Error("Not user turn!"); //Not user turn
     this.board[index] = this.turn;
     this.switchTurn();
   }
@@ -120,16 +117,16 @@ class Room {
     this.isGameOver = true;
   }
 
-  //Convert to object
+  //Convert Map to object because client cant receive map
   toObject() {
     return {
       id: this.id,
-      players: Object.fromEntries(this.players), // Convert Map to plain object
+      players: Object.fromEntries(this.players),
       isGameStarted: this.isGameStarted,
       isGameOver: this.isGameOver,
       board: this.board,
       turn: this.turn,
-      symbols: Object.fromEntries(this.symbols), // Convert Map to plain object
+      symbols: Object.fromEntries(this.symbols),
     };
   }
 }

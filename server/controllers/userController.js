@@ -89,37 +89,40 @@ export const updateMe = catchAsync(async (req, res, next) => {
 // });
 
 export const uploadAvatar = catchAsync(async (req, res, next) => {
-  // Configure Cloudinary
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // your cloud name
-    api_key: process.env.CLOUDINARY_API_KEY, // your API key
-    api_secret: process.env.CLOUDINARY_API_SECRET, // your API secret
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
   });
 
   if (!req.file) {
     return next(new AppError("No file uploaded", 400));
   }
 
-  // Check if the file is an image by validating the MIME type
   if (!req.file.mimetype.startsWith("image/")) {
     return next(
       new AppError("Invalid file type. Please upload an image.", 400)
     );
   }
 
-  //Upload to cloudinary
-  const result = await cloudinary.v2.uploader.upload(req.file.path, {
+  // Convert buffer to Base64-encoded data URI
+  const base64Image = `data:${
+    req.file.mimetype
+  };base64,${req.file.buffer.toString("base64")}`;
+
+  // Upload directly to Cloudinary
+  const result = await cloudinary.v2.uploader.upload(base64Image, {
     folder: "avatars",
     invalidate: true,
   });
 
+  console.log(result);
+
   // Extract the secure URL of the uploaded image
   const avatarUrl = result.secure_url;
 
-  //Update user avatarUrl
-  await userDAO.updateUserById(req.user.id, {
-    avatarUrl,
-  });
+  // Update user avatarUrl
+  await userDAO.updateUserById(req.user.id, { avatarUrl });
 
   res.status(200).json({
     status: "success",
