@@ -1,11 +1,17 @@
 import { Server } from "socket.io";
-import gameHandlers from "./sockets/game.js";
+import caroHandlers from "./sockets/caro.js";
 
 export function initSocket(server) {
-  const io = new Server(server);
-  const gameNamespace = io.of("/game");
-  gameNamespace.on("connection", (socket) => {
-    console.log("New client connected to game namespace: " + socket.id);
-    gameHandlers(socket, gameNamespace);
+  const io = new Server(server, {
+    cors: {
+      origin: "http://localhost:8080",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
+
+  const caroNamespace = io.of("/caro");
+  caroNamespace.on("connection", (socket) => {
+    caroHandlers(socket, caroNamespace);
   });
 }

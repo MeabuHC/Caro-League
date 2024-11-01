@@ -1,16 +1,18 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Setup from "./pages/Setup";
 import Home from "./pages/Home";
-import Games from "./pages/Games";
+import CaroLobby from "./pages/CaroLobby";
 import Chats from "./pages/Chats";
+import CaroBattle from "./pages/CaroBattle";
 import LayoutWrapper from "./components/LayoutWrapper";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
 import { UserProvider } from "./context/UserContext";
+import { CaroSocketProvider } from "./context/CaroSocketContext";
 
 function App() {
   return (
@@ -23,21 +25,41 @@ function App() {
             {/* Protected routes */}
             <Route
               path="profile"
-              element={<ProtectedRoute element={<Profile />} />}
-            />
-            <Route
-              path="games"
-              element={<ProtectedRoute element={<Games />} />}
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="chats"
-              element={<ProtectedRoute element={<Chats />} />}
+              element={
+                <ProtectedRoute>
+                  <Chats />
+                </ProtectedRoute>
+              }
             />
-
             <Route
               path="settings"
-              element={<ProtectedRoute element={<Settings />} />}
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
             />
+            <Route
+              path="caro"
+              element={
+                <ProtectedRoute>
+                  <CaroSocketProvider>
+                    <Outlet />
+                  </CaroSocketProvider>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<CaroLobby />} />
+              <Route path=":roomId" element={<CaroBattle />} />
+            </Route>
           </Route>
 
           <Route path="/login" element={<Login />} />

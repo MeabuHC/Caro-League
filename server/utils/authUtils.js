@@ -5,7 +5,7 @@ import { promisify } from "util";
 export function getTokenFromCookies(cookieHeader) {
   const token = cookieHeader
     .split("; ")
-    .find((row) => row.startsWith("jwt="))
+    .find((row) => row.startsWith("accessToken="))
     ?.split("=")[1];
   return token;
 }

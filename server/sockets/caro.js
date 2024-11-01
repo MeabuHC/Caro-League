@@ -1,12 +1,12 @@
 import RoomMap from "./roomMap.js"; // Import the RoomMap class
 import { getTokenFromCookies, getTokenPayload } from "../utils/authUtils.js";
-
+import userDAO from "../dao/userDAO.js";
 // Saving room
 let roomMap = new RoomMap();
 
 //--------------- NAMESPACE FOR MAIN METHOD --------------//
-const Game = {
-  startGame: (roomId, gameNamespace) => {
+const Caro = {
+  startGame: (roomId, caroNamespace) => {
     // Get the sockets in the room
     console.log("This is roomMap from startGame");
     console.log(roomMap);
@@ -19,15 +19,13 @@ const Game = {
     roomObj.resetBoard();
     roomObj.startGame("X");
 
-    console.log(socketsInRoom);
-
-    // Emit to each player with their assigned turn
-    gameNamespace.to(socketsInRoom[0]).emit("start-match", roomObj.toObject()); // First player
-    gameNamespace.to(socketsInRoom[1]).emit("start-match", roomObj.toObject()); // Second player
+    // Emit to every player in the room
+    console.log("Sending start-match signal");
+    caroNamespace.to(roomObj.id).emit("start-match", roomObj.toObject());
   },
 
   // Final function for finding a match
-  findMatch: async (socket, user, gameNamespace) => {
+  findMatchMaking: async (socket, caroNamespace, user) => {
     // Check if the user is already in a room
     if (roomMap.getRoomForUser(user.id)) {
       socket.emit("already-in-room");
@@ -38,27 +36,31 @@ const Game = {
     let roomId; // Variable to store the room
 
     // Find room based on logic
-    roomId = await findRoomId(gameNamespace);
+    roomId = await findRoomId(caroNamespace);
 
     // Join the determined room and update room map
-    console.log("User joins room: " + roomId);
+    console.log(socket.id + " joins: " + roomId);
     socket.join(roomId);
-    roomMap.updateRoomMap(gameNamespace);
+    roomMap.updateRoomMap(caroNamespace);
     roomMap.rooms.get(roomId).addPlayer(socket.id, user);
-
-    console.log("This is room: ");
-    console.log(roomMap.rooms.get(roomId));
 
     // Check condition to start the game
     if (isReadyToStartGame(roomId)) {
-      Game.startGame(roomId, gameNamespace);
-    } else {
+      Caro.startGame(roomId, caroNamespace);
+    }
+    //Wait for another player
+    else {
       waitMatch(roomId, socket);
     }
   },
 
+  cancelMatchMaking: (socket, caroNamespace, roomId) => {
+    console.log(socket.id + " leaves " + roomId);
+    socket.leave(roomId);
+    roomMap.updateRoomMap(caroNamespace);
+  },
   // Update the room board with the player's move
-  updateRoomBoard: async (index, socket, gameNamespace) => {
+  updateRoomBoard: async (socket, caroNamespace, index) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
     const players = roomObj.players;
     const symbol = roomObj.turn;
@@ -66,7 +68,7 @@ const Game = {
     roomObj.makeMove(index, socket.id);
 
     // Emit move update to both players
-    gameNamespace
+    caroNamespace
       .to(roomObj.id)
       .emit("receiveMove", symbol, index, roomObj.toObject());
 
@@ -90,7 +92,7 @@ const Game = {
     } else if (roomObj.isDraw()) {
       // Emit draw event to both players
       const playerArray = Array.from(players.values());
-      gameNamespace.to(roomObj.id).emit("draw");
+      caroNamespace.to(roomObj.id).emit("draw");
 
       // Update stats for both players
       await updatePlayerStats(playerArray[0], playerArray[1], "draw", 0);
@@ -101,7 +103,7 @@ const Game = {
   },
 
   // Handle socket disconnection
-  handleDisconnect: (socket, gameNamespace) => {
+  handleDisconnect: (socket, caroNamespace) => {
     console.log(`${socket.id} disconnected!`);
 
     // Get room by socket
@@ -130,7 +132,7 @@ const Game = {
     }
 
     // Update the roomMap after disconnection
-    roomMap.updateRoomMap(gameNamespace);
+    roomMap.updateRoomMap(caroNamespace);
   },
 
   // Handle receive rematch request
@@ -142,9 +144,9 @@ const Game = {
   },
 
   // Handle accept rematch request
-  handleAcceptRematch: (socket, gameNamespace) => {
+  handleAcceptRematch: (socket, caroNamespace) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
-    Game.startGame(roomObj.id, gameNamespace);
+    Caro.startGame(roomObj.id, caroNamespace);
   },
 };
 
@@ -153,7 +155,7 @@ const Game = {
 // Wait for another player to join
 function waitMatch(room, socket) {
   console.log("Sending waiting signal!");
-  socket.emit("wait-match", room);
+  socket.emit("wait-match-making", room);
 }
 
 // Check if it is okay to start the game
@@ -163,7 +165,7 @@ function isReadyToStartGame(roomName) {
 }
 
 // Find a valid roomId
-async function findRoomId(gameNamespace) {
+async function findRoomId(caroNamespace) {
   // Iterate through existing rooms to find a room with one player
   for (const [roomId, roomObj] of roomMap.rooms) {
     if (
@@ -176,7 +178,7 @@ async function findRoomId(gameNamespace) {
   }
 
   // If no room found, create a new room
-  return await createUniqueRoomId(gameNamespace); // Generate a new room ID
+  return await createUniqueRoomId(caroNamespace); // Generate a new room ID
 }
 
 // Generate a random room ID
@@ -186,13 +188,13 @@ function generateRoomId() {
 }
 
 // Return a unique room ID
-async function createUniqueRoomId(gameNamespace) {
+async function createUniqueRoomId(caroNamespace) {
   let roomId;
   let roomExists = true;
 
   while (roomExists) {
     roomId = generateRoomId();
-    roomExists = gameNamespace.adapter.rooms.has(roomId); // Check if the room exists
+    roomExists = caroNamespace.adapter.rooms.has(roomId); // Check if the room exists
   }
 
   return roomId;
@@ -223,37 +225,43 @@ async function updatePlayerStats(player1, player2, status, elo) {
 }
 
 //-----------------  EXPORT HANDLER --------------//
-const gameHandlers = async (socket, gameNamespace) => {
+const caroHandlers = async (socket, caroNamespace) => {
   console.log("New client connected: " + socket.id); // New player
 
   // Extract user ID from JWT token
   const token = getTokenFromCookies(socket.request.headers.cookie);
   const decoded = await getTokenPayload(token);
-  const user = await User.findById(decoded.id);
+  const user = await userDAO.findUserById(decoded.id);
 
   // Handle finding a match
-  socket.on("find-match", () => Game.findMatch(socket, user, gameNamespace));
+  socket.on("find-match-making", () =>
+    Caro.findMatchMaking(socket, caroNamespace, user)
+  );
+
+  socket.on("cancel-match-making", (roomId) => {
+    Caro.cancelMatchMaking(socket, caroNamespace, roomId);
+  });
 
   // Sending player move to the other player
   socket.on("makeMove", async (index) => {
-    await Game.updateRoomBoard(index, socket, gameNamespace);
+    await Caro.updateRoomBoard(socket, caroNamespace, index);
   });
 
   // Handle rematch request
   socket.on("rematch-request", () => {
-    Game.handleRematchRequest(socket);
+    Caro.handleRematchRequest(socket);
   });
 
   // Handle accept rematch request
   socket.on("accept-rematch", () => {
-    Game.handleAcceptRematch(socket, gameNamespace);
+    Caro.handleAcceptRematch(socket, caroNamespace);
   });
 
   // Handle socket disconnection
   socket.on("disconnect", () => {
-    Game.handleDisconnect(socket, gameNamespace);
+    Caro.handleDisconnect(socket, caroNamespace);
   });
 };
 
-// Export the game handlers
-export default gameHandlers;
+// Export the Caro handlers
+export default caroHandlers;

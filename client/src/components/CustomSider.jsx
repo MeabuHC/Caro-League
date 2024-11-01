@@ -24,7 +24,7 @@ function getItem(label, key, icon, children) {
 const items = [
   getItem(<Link to={"/"}>Home</Link>, "0", <HomeOutlined />),
   getItem(<Link to={"/profile"}>Profile</Link>, "1", <UserOutlined />),
-  getItem(<Link to={"/games"}>Games</Link>, "2", <DesktopOutlined />),
+  getItem(<Link to={"/caro"}>Caro</Link>, "2", <DesktopOutlined />),
   getItem(<Link to={"/chats"}>Chats</Link>, "3", <MessageOutlined />),
   getItem("Friends", "4", <TeamOutlined />),
 ];

@@ -1,9 +1,8 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useUserContext } from "../context/UserContext";
 
-//Protect route
-const ProtectedRoute = ({ element }) => {
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useUserContext();
 
   if (loading) {
@@ -14,7 +13,7 @@ const ProtectedRoute = ({ element }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return element;
+  return children;
 };
 
 export default ProtectedRoute;

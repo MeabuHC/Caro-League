@@ -1,20 +1,46 @@
-import React, { useState } from "react";
-import { useUserContext } from "../context/UserContext";
+import React, { useEffect, useState } from "react";
 import { Modal, Spin } from "antd";
+import { useCaroSocket } from "../context/CaroSocketContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Games() {
-  const { user } = useUserContext();
+  const socket = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const [roomId, setRoomId] = useState(null);
+  /* Socket configuration */
 
-  //Click on "Quick Play"
+  useEffect(() => {
+    //On wait match
+    socket.on("wait-match-making", (roomId) => {
+      console.log("You are in room: " + roomId);
+      setRoomId(roomId);
+    });
+
+    //On start match
+    socket.on("start-match", (roomObj) => {
+      console.log("Start game at " + roomObj.id);
+      navigate("/games/" + roomObj.id);
+    });
+
+    return () => {
+      socket.removeAllListeners();
+    };
+  }, []);
+
+  /* Buttons method */
   const startQuickPlay = () => {
     setIsModalOpen(true);
+    socket.emit("find-match-making");
     console.log("Start quick play");
   };
 
-  //Cancel Quick Play
   const cancelQuickPlay = () => {
-    console.log("Cancel quick play!");
+    console.log("Cancel quick play at: " + roomId);
+    if (socket && roomId) {
+      socket.emit("cancel-match-making", roomId);
+      setRoomId(null); //Reset current room
+    }
     setIsModalOpen(false);
   };
 
@@ -42,6 +68,7 @@ export default function Games() {
         </div>
       </div>
 
+      {/* Buttons */}
       <div className="flex gap-3">
         <button
           className="px-6 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out"
@@ -53,6 +80,8 @@ export default function Games() {
           Find Room
         </button>
       </div>
+
+      {/* Quick Play Modal */}
       <Modal
         title="Waiting for Opponent"
         open={isModalOpen}
