@@ -2,6 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap");
 @import url("https://db.onlinewebfonts.com/c/b621d1ffb46493164fd62fb7a83ab0ff?family=Mark+W05+Medium");
+@import url("https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -9,7 +10,7 @@
 
 ::-webkit-scrollbar {
   width: 0.4rem;
-  background-color: none;
+  height: 0.4rem;
 }
 
 ::-webkit-scrollbar-track {
@@ -17,12 +18,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #ffffff26;
+  background-color: rgba(128, 128, 128, 0.7);
   border-radius: 1rem;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #ffffff40;
+  background-color: rgba(128, 128, 128, 0.9);
 }
 
 .container {

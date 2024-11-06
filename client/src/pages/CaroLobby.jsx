@@ -3,30 +3,53 @@ import { Modal, Spin } from "antd";
 import { useCaroSocket } from "../context/CaroSocketContext";
 import { useNavigate } from "react-router-dom";
 
+const baseUrl = import.meta.env.VITE_BASE_URL;
+
 export default function Games() {
   const socket = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [roomId, setRoomId] = useState(null); //For leave room
+  const [playerStats, setPlayerStats] = useState(null);
   const navigate = useNavigate();
-  const [roomId, setRoomId] = useState(null);
   /* Socket configuration */
-
   useEffect(() => {
-    //On wait match
-    socket.on("wait-match-making", (roomId) => {
+    // Handlers
+    const handleGetPlayerStats = (playerStats) => {
+      console.log(playerStats);
+      setPlayerStats(playerStats);
+    };
+
+    const handleWaitMatchMaking = (roomId) => {
       console.log("You are in room: " + roomId);
       setRoomId(roomId);
-    });
+    };
 
-    //On start match
-    socket.on("start-match", (roomObj) => {
-      console.log("Start game at " + roomObj.id);
-      navigate("/games/" + roomObj.id);
-    });
+    const handleStartMatch = (roomId) => {
+      console.log("Start game at " + roomId);
+      navigate("/caro/" + roomId);
+    };
 
+    // On getting player stats
+    socket.on("receive-player-stats", handleGetPlayerStats);
+
+    // On wait match
+    socket.on("wait-match-making", handleWaitMatchMaking);
+
+    // On start match
+    socket.on("start-match", handleStartMatch);
+
+    /* Emit */
+    socket.emit("get-player-stats");
+
+    // Cleanup
     return () => {
-      socket.removeAllListeners();
+      socket.off("receive-player-stats", handleGetPlayerStats);
+      socket.off("wait-match-making", handleWaitMatchMaking);
+      socket.off("start-match", handleStartMatch);
     };
   }, []);
+
+  if (!playerStats) return; //Wait loading
 
   /* Buttons method */
   const startQuickPlay = () => {
@@ -38,11 +61,16 @@ export default function Games() {
   const cancelQuickPlay = () => {
     console.log("Cancel quick play at: " + roomId);
     if (socket && roomId) {
-      socket.emit("cancel-match-making", roomId);
+      socket.emit("leave-room", roomId);
       setRoomId(null); //Reset current room
     }
     setIsModalOpen(false);
   };
+
+  const progressBarPercent =
+    playerStats.rankId.tier === "master"
+      ? "100%"
+      : (playerStats.lp / playerStats.rankId.lpThreshold) * 100 + "%";
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
@@ -50,20 +78,24 @@ export default function Games() {
       <div className="bg-white shadow-lg rounded-lg p-6 mb-8 w-80">
         <div className="flex items-center mb-4">
           <img
-            src="https://imgsvc.trackercdn.com/url/size(64),fit(contain)/https%3A%2F%2Ftrackercdn.com%2Fcdn%2Ftracker.gg%2Ftft%2Franks%2F2022%2Femerald.png/image.png"
+            src={baseUrl + "/" + playerStats.rankId.imageUrl}
             alt="Rank Image"
             className="w-16 h-16 mr-4"
           />
           <div>
-            <h3 className="text-2xl font-bold text-gray-800">EMERALD IV</h3>
-            <span className="text-sm text-gray-500">Tier progress: 75 LP</span>
+            <h3 className="text-2xl font-bold text-gray-800">
+              {playerStats.rankId.tier} {playerStats.currentDivision}
+            </h3>
+            <span className="text-sm text-gray-500">
+              Tier progress: {playerStats.lp} LP
+            </span>
           </div>
         </div>
         {/* Progress Bar */}
         <div className="bg-gray-300 h-2 rounded">
           <div
             className="bg-yellow-500 h-2 rounded"
-            style={{ width: "75%" }}
+            style={{ width: progressBarPercent }}
           ></div>
         </div>
       </div>

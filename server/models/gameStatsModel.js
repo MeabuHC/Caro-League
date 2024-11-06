@@ -16,6 +16,12 @@ const gameStatsSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Ranking", // Reference to the Ranking model
       required: true,
+      default: new mongoose.Types.ObjectId("67190d9b7d9cfb73241731de"), //Bronze default
+    },
+    currentDivision: {
+      type: String,
+      required: true,
+      default: "IV", //Bronze IV
     },
     totalGames: {
       type: Number,

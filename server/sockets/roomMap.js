@@ -9,8 +9,8 @@ class RoomMap {
   //Check if user has joined any room and return that room
   getRoomForUser(userId) {
     for (const room of this.rooms.values()) {
-      for (const player of room.players.values()) {
-        if (player.id === userId) {
+      for (const playerStats of room.players.values()) {
+        if (playerStats.userId._id === userId) {
           return room; // User is already in a room
         }
       }
@@ -39,7 +39,7 @@ class RoomMap {
       if (key.startsWith("room")) {
         if (!this.rooms.has(key)) {
           // If room does not exist, create a new Room object
-          const newRoom = new Room(key);
+          const newRoom = new Room(key, gameNamespace);
           clonedMap.set(key, newRoom); // Add new room
         } else {
           //If room existed, just add in the clonedMap like normal

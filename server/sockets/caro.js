@@ -1,33 +1,28 @@
 import RoomMap from "./roomMap.js"; // Import the RoomMap class
 import { getTokenFromCookies, getTokenPayload } from "../utils/authUtils.js";
-import userDAO from "../dao/userDAO.js";
+import GameStatsDAO from "../dao/gameStatsDAO.js";
+
 // Saving room
 let roomMap = new RoomMap();
 
 //--------------- NAMESPACE FOR MAIN METHOD --------------//
 const Caro = {
-  startGame: (roomId, caroNamespace) => {
+  startGame: (roomId) => {
     // Get the sockets in the room
     console.log("This is roomMap from startGame");
     console.log(roomMap);
 
     const roomObj = roomMap.rooms.get(roomId);
-    const socketsInRoom = Array.from(roomObj.players.keys());
 
     // Reset the board in room
-    console.log("Run reset board!");
     roomObj.resetBoard();
-    roomObj.startGame("X");
-
-    // Emit to every player in the room
-    console.log("Sending start-match signal");
-    caroNamespace.to(roomObj.id).emit("start-match", roomObj.toObject());
+    roomObj.startGame();
   },
 
   // Final function for finding a match
-  findMatchMaking: async (socket, caroNamespace, user) => {
+  findMatchMaking: async (socket, caroNamespace, playerStats) => {
     // Check if the user is already in a room
-    if (roomMap.getRoomForUser(user.id)) {
+    if (roomMap.getRoomForUser(playerStats.userId._id)) {
       socket.emit("already-in-room");
       socket.disconnect();
       return;
@@ -42,11 +37,11 @@ const Caro = {
     console.log(socket.id + " joins: " + roomId);
     socket.join(roomId);
     roomMap.updateRoomMap(caroNamespace);
-    roomMap.rooms.get(roomId).addPlayer(socket.id, user);
+    roomMap.rooms.get(roomId).addPlayer(socket.id, playerStats);
 
     // Check condition to start the game
     if (isReadyToStartGame(roomId)) {
-      Caro.startGame(roomId, caroNamespace);
+      Caro.startGame(roomId);
     }
     //Wait for another player
     else {
@@ -54,52 +49,23 @@ const Caro = {
     }
   },
 
-  cancelMatchMaking: (socket, caroNamespace, roomId) => {
+  //Cancel requester quick play
+  leaveRoom: (socket, caroNamespace, roomId) => {
     console.log(socket.id + " leaves " + roomId);
     socket.leave(roomId);
     roomMap.updateRoomMap(caroNamespace);
   },
+
+  //Send room object to requester
+  sendRoomObject: (socket, roomId) => {
+    const roomObj = roomMap.rooms.get(roomId);
+    socket.emit("receive-room-object", roomObj?.toObject());
+  },
+
   // Update the room board with the player's move
-  updateRoomBoard: async (socket, caroNamespace, index) => {
+  updateRoomBoard: async (socket, [index_X, index_Y]) => {
     const roomObj = roomMap.getRoomBySocketId(socket.id);
-    const players = roomObj.players;
-    const symbol = roomObj.turn;
-
-    roomObj.makeMove(index, socket.id);
-
-    // Emit move update to both players
-    caroNamespace
-      .to(roomObj.id)
-      .emit("receiveMove", symbol, index, roomObj.toObject());
-
-    // Check if there's a win or a draw
-    const isWinObj = roomObj.isWin();
-    if (isWinObj[0]) {
-      const winner = players.get(socket.id);
-      const loser = [...players].find(([id]) => id !== socket.id)[1];
-
-      // Emit 'winner' event to the current player
-      socket.emit("winner", isWinObj[1]);
-
-      // Emit 'loser' event to the other player
-      socket.to(roomObj.id).emit("loser", isWinObj[1]);
-
-      // Update stats for winner and loser
-      await updatePlayerStats(winner, loser, "result", 5);
-
-      // Update room status
-      roomObj.endGame();
-    } else if (roomObj.isDraw()) {
-      // Emit draw event to both players
-      const playerArray = Array.from(players.values());
-      caroNamespace.to(roomObj.id).emit("draw");
-
-      // Update stats for both players
-      await updatePlayerStats(playerArray[0], playerArray[1], "draw", 0);
-
-      // Update room status
-      roomObj.endGame();
-    }
+    roomObj.makeMove([index_X, index_Y], socket);
   },
 
   // Handle socket disconnection
@@ -113,13 +79,13 @@ const Caro = {
 
       // If the game has started and there are 2 players in the room
       if (players.size === 2) {
-        const loser = players.get(socket.id);
-        const winner = [...players].find(([id]) => id !== socket.id)[1];
+        const loserStats = players.get(socket.id);
+        const winnerStats = [...players].find(([id]) => id !== socket.id)[1];
 
         // The game started but hasn't ended
         if (roomObj.isGameStarted && !roomObj.isGameOver) {
           // Update stats and notify the remaining player
-          updatePlayerStats(winner, loser, "result", 20);
+          GameStatsDAO.updatePlayerStats(winnerStats, loserStats, "result", 55);
           socket.to(roomObj.id).emit("opponent-disconnect");
         } else {
           // If the game has ended
@@ -200,30 +166,6 @@ async function createUniqueRoomId(caroNamespace) {
   return roomId;
 }
 
-// Update player stats after the match
-async function updatePlayerStats(player1, player2, status, elo) {
-  const winnerStats = player1.gameStats;
-  const loserStats = player2.gameStats;
-
-  winnerStats.totalGamesPlayed += 1;
-  loserStats.totalGamesPlayed += 1;
-
-  if (status === "result") {
-    winnerStats.totalWins += 1;
-    winnerStats.eloRating += elo;
-    loserStats.totalLosses += 1;
-    loserStats.eloRating -= elo;
-  } else if (status === "draw") {
-    winnerStats.totalDraws += 1;
-    winnerStats.eloRating += elo;
-    loserStats.totalDraws += 1;
-    loserStats.eloRating += elo;
-  }
-
-  await player1.save();
-  await player2.save();
-}
-
 //-----------------  EXPORT HANDLER --------------//
 const caroHandlers = async (socket, caroNamespace) => {
   console.log("New client connected: " + socket.id); // New player
@@ -231,20 +173,35 @@ const caroHandlers = async (socket, caroNamespace) => {
   // Extract user ID from JWT token
   const token = getTokenFromCookies(socket.request.headers.cookie);
   const decoded = await getTokenPayload(token);
-  const user = await userDAO.findUserById(decoded.id);
+
+  // Handle request player stats
+  socket.on("get-player-stats", async () => {
+    let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+    if (playerStats === null) {
+      playerStats = await GameStatsDAO.createGameStatsForUserId(decoded.id);
+    }
+    socket.emit("receive-player-stats", playerStats);
+  });
 
   // Handle finding a match
-  socket.on("find-match-making", () =>
-    Caro.findMatchMaking(socket, caroNamespace, user)
-  );
+  socket.on("find-match-making", async () => {
+    let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+    Caro.findMatchMaking(socket, caroNamespace, playerStats);
+  });
 
-  socket.on("cancel-match-making", (roomId) => {
-    Caro.cancelMatchMaking(socket, caroNamespace, roomId);
+  //Handle cancel match
+  socket.on("leave-room", (roomId) => {
+    Caro.leaveRoom(socket, caroNamespace, roomId);
+  });
+
+  //Handle sending room object
+  socket.on("get-room-object", (roomId) => {
+    Caro.sendRoomObject(socket, roomId);
   });
 
   // Sending player move to the other player
   socket.on("makeMove", async (index) => {
-    await Caro.updateRoomBoard(socket, caroNamespace, index);
+    await Caro.updateRoomBoard(socket, index);
   });
 
   // Handle rematch request
