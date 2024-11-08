@@ -2,16 +2,15 @@ import GameStatsDAO from "../dao/gameStatsDAO.js";
 
 const rows = 15;
 const columns = 20;
-class Room {
+class Game {
   constructor(id, caroNamespace) {
     this.id = id;
     this.caroNamespace = caroNamespace;
-    this.players = new Map();
-    this.isGameStarted = false;
-    this.isGameOver = false;
+    this.players = new Map(); //UserId -> UserStats + (Socket)
+    this.state = "waiting";
     this.board = this.initializeBoard();
     this.turn = "X";
-    this.symbols = new Map();
+    this.symbols = new Map(); //UserId -> Symbols
     this.turnTimer = null;
     this.turnDuration = 20;
     this.remainingTime = this.turnDuration;
@@ -22,20 +21,16 @@ class Room {
     return Array.from({ length: rows }, () => Array(columns).fill(null));
   }
 
-  addPlayer(socketId, player) {
-    this.players.set(socketId, player); // Add player with socket ID as key
+  addPlayer(socket, player) {
+    this.players.size;
+    player.socket = socket;
+    this.players.set(player.userId._id.toString(), player); // Add player with socket ID as key
   }
 
-  assignSymbol(socketId, symbol) {
-    this.symbols.set(socketId, symbol);
-  }
-
-  resetBoard() {
-    this.board = this.initializeBoard(); // Reset the board for rematch
-    this.isGameOver = false;
-    this.isGameStarted = false;
-    this.turn = "X"; // Reset the turn tracking
-    this.symbols = new Map(); //Reset turn assignment
+  removePlayer(playerId) {
+    if (this.players.has(playerId)) {
+      this.players.get(playerId).socket = undefined;
+    }
   }
 
   // Switch turn and reset timer
@@ -46,17 +41,18 @@ class Room {
   }
 
   // Make a move and reset the timer
-  async makeMove([index_X, index_Y], socket) {
-    if (this.isGameOver) {
-      socket.emit("moveError", {
+  async makeMove([index_X, index_Y], userId) {
+    const userSocket = this.players.get(userId).socket;
+    if (this.state === "completed") {
+      userSocket.emit("moveError", {
         success: false,
         message: "The game is over!",
       });
       return;
     }
 
-    if (!this.isPlayerTurn(socket.id)) {
-      socket.emit("moveError", {
+    if (!this.isPlayerTurn(userId)) {
+      userSocket.emit("moveError", {
         success: false,
         message: "Not your turn!",
       });
@@ -68,13 +64,13 @@ class Room {
     //Check win
     const [isWin, pattern] = this.isWin();
     if (isWin) {
-      // Update room status
+      // Update game status
       clearInterval(this.turnTimer);
       this.endGame();
 
       // Update stats for winnerStats and loserStats
-      const winnerStats = this.players.get(socket.id);
-      const loserStats = [...this.players].find(([id]) => id !== socket.id)[1];
+      const winnerStats = this.players.get(userId);
+      const loserStats = [...this.players].find(([id]) => id !== userId)[1];
       await GameStatsDAO.updatePlayerStats(
         winnerStats,
         loserStats,
@@ -92,7 +88,7 @@ class Room {
       // Emit move update to both players
       this.caroNamespace
         .to(this.id)
-        .emit("receive-room-object", this.toObject());
+        .emit("receive-game-object", this.toObject());
 
       // Emit 'winner' event to the current player
       this.caroNamespace.to(this.id).emit("gameResult", this.gameResult);
@@ -100,7 +96,7 @@ class Room {
       return;
     }
     if (this.isDraw()) {
-      //Update room status
+      //Update game status
       this.endGame();
       clearInterval(this.turnTimer);
 
@@ -120,12 +116,12 @@ class Room {
         reason: "out of move",
       };
 
-      // Update room status
+      // Update game status
       this.endGame();
       // Emit move update to both players
       this.caroNamespace
         .to(this.id)
-        .emit("receive-room-object", this.toObject());
+        .emit("receive-game-object", this.toObject());
       this.caroNamespace.to(this.id).emit("draw", this.gameResult);
 
       return;
@@ -133,11 +129,11 @@ class Room {
 
     this.switchTurn(); // Switch turn after a valid move
     // Emit move update to both players
-    this.caroNamespace.to(this.id).emit("receive-room-object", this.toObject());
+    this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
   }
 
-  isPlayerTurn(socketId) {
-    return this.symbols.get(socketId) === this.turn;
+  isPlayerTurn(userId) {
+    return this.symbols.get(userId) === this.turn;
   }
 
   // Check win condition for 5 in a row
@@ -193,18 +189,24 @@ class Room {
 
   // Start the game and initialize the turn timer
   startGame() {
-    this.isGameStarted = true;
-    this.isGameOver = false;
-    const playerSocketIds = Array.from(this.players.keys());
+    this.state = "game-started";
+    const playerIds = Array.from(this.players.keys());
     const randomTurn = Math.random() > 0.5 ? "X" : "O";
-    this.symbols.set(playerSocketIds[0], randomTurn);
-    this.symbols.set(playerSocketIds[1], randomTurn === "X" ? "O" : "X");
+    this.symbols.set(playerIds[0], randomTurn);
+    this.symbols.set(playerIds[1], randomTurn === "X" ? "O" : "X");
     this.turn = "X";
     this.startTurnTimer(); // Start the turn timer
 
-    // Emit to every player in the room
-    console.log("Sending start-match signal");
-    this.caroNamespace.to(this.id).emit("start-match", this.id);
+    // Send game object and their corresponding userId
+    // console.log("Sending start-match signal");
+    // console.log(this);
+
+    // this.caroNamespace
+    //   .to(this.players.get(playerIds[0]).socket.id)
+    //   .emit("start-match", this.toObject(), playerIds[0]);
+    // this.caroNamespace
+    //   .to(this.players.get(playerIds[1]).socket.id)
+    //   .emit("start-match", this.toObject(), playerIds[1]);
   }
 
   // Start or reset the turn timer
@@ -214,13 +216,13 @@ class Room {
     );
 
     const winnerId = [...this.symbols].find(
-      ([socketId, symbol]) => symbol === winnerSymbol
+      ([userId, symbol]) => symbol === winnerSymbol
     )?.[0];
 
     // Find the winner and loser stats
     const winnerStats = this.players.get(winnerId);
     const loserStats = [...this.players].find(
-      ([socketId]) => socketId !== winnerId
+      ([userId]) => userId !== winnerId
     )?.[1];
 
     if (this.turnTimer) {
@@ -253,7 +255,7 @@ class Room {
 
         this.caroNamespace
           .to(this.id)
-          .emit("receive-room-object", this.toObject());
+          .emit("receive-game-object", this.toObject());
         this.caroNamespace.to(this.id).emit("gameResult", this.gameResult);
       }
     }, 1000);
@@ -261,20 +263,24 @@ class Room {
 
   //Set status to game over
   endGame() {
-    this.isGameStarted = false;
-    this.isGameOver = true;
+    this.state = "completed";
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
     }
   }
 
-  // Convert to plain object for the client, including the timer
+  // Convert to plain object for the client, including the timer, no socket
   toObject() {
     return {
       id: this.id,
-      players: Object.fromEntries(this.players),
-      isGameStarted: this.isGameStarted,
-      isGameOver: this.isGameOver,
+      players: Object.fromEntries(
+        // Remove the socket and format each player data correctly
+        Array.from(this.players.entries()).map(([userId, player]) => [
+          userId,
+          player._doc,
+        ])
+      ),
+      state: this.state,
       board: this.board,
       turn: this.turn,
       symbols: Object.fromEntries(this.symbols),
@@ -284,4 +290,4 @@ class Room {
   }
 }
 
-export default Room;
+export default Game;

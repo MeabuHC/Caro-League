@@ -14,6 +14,7 @@ export const UserProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await axiosWithRefreshToken(`/api/v1/users/me`);
+      // console.log(response.data.data.user);
       setUser(response.data.data.user);
       setRefetch(false); // Reset refetch after fetching
     } catch (error) {

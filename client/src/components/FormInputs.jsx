@@ -17,6 +17,7 @@ const FormInputs = ({ inputs, formData, onChange }) => {
           className={styles.inputField}
           readOnly={input.readOnly}
           required={input.required}
+          autoComplete="current-password"
         />
       ))}
     </>

@@ -35,7 +35,12 @@ class GameStatsDAO {
       winnerStats.lp += lp;
 
       loserStats.losses += 1;
-      loserStats.lp -= lp;
+      //Only derank if lp = 0
+      if (loserStats.lp !== 0 && loserStats.lp - lp < 0) {
+        loserStats.lp = 0;
+      } else {
+        loserStats.lp -= lp;
+      }
     } else if (status === "draw") {
       winnerStats.draws += 1;
       winnerStats.lp += lp;
@@ -59,7 +64,10 @@ class GameStatsDAO {
     );
 
     // Uprank
-    if (playerStats.lp >= playerStats.rankId.lpThreshold) {
+    if (
+      playerStats.rankId.tier != "Master" &&
+      playerStats.lp >= playerStats.rankId.lpThreshold
+    ) {
       playerStats.lp -= playerStats.rankId.lpThreshold;
 
       // Final division
@@ -70,6 +78,9 @@ class GameStatsDAO {
         );
 
         playerStats.rankId = nextTier._id;
+        if (nextTier.tier === "Master") {
+          playerStats.currentDivision = "";
+        }
         playerStats.currentDivision = nextTier.divisions[0]; // Reset to first division of new tier
       } else {
         // Move to next division
@@ -80,7 +91,7 @@ class GameStatsDAO {
 
     // Derank
     else if (playerStats.lp < 0) {
-      playerStats.lp += playerStats.rankId.lpThreshold; // Reset LP to the threshold
+      playerStats.lp += playerStats.rankId.lpThreshold; // Reset LP
 
       // Check if already in the first division
       if (divisionIndex === 0) {

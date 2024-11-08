@@ -20,7 +20,6 @@ const gameStatsSchema = new mongoose.Schema(
     },
     currentDivision: {
       type: String,
-      required: true,
       default: "IV", //Bronze IV
     },
     totalGames: {

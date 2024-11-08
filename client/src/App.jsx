@@ -6,13 +6,13 @@ import Setup from "./pages/Setup";
 import Home from "./pages/Home";
 import CaroLobby from "./pages/CaroLobby";
 import Chats from "./pages/Chats";
-import CaroBattle from "./pages/CaroBattle";
 import LayoutWrapper from "./components/LayoutWrapper";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
 import { UserProvider } from "./context/UserContext";
 import { CaroSocketProvider } from "./context/CaroSocketContext";
+import CaroBattleWrapper from "./pages/CaroBattleWrapper";
 
 function App() {
   return (
@@ -58,7 +58,7 @@ function App() {
               }
             >
               <Route index element={<CaroLobby />} />
-              <Route path=":roomId" element={<CaroBattle />} />
+              <Route path="game/:gameId" element={<CaroBattleWrapper />} />
             </Route>
           </Route>
 

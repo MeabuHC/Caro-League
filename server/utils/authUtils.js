@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { promisify } from "util";
 
 // Function to extract JWT token from cookies
-export function getTokenFromCookies(cookieHeader) {
+export function getAccessTokenFromCookies(cookieHeader) {
   const token = cookieHeader
     .split("; ")
     .find((row) => row.startsWith("accessToken="))

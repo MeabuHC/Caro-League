@@ -8,7 +8,7 @@ const baseUrl = import.meta.env.VITE_BASE_URL;
 export default function Games() {
   const socket = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [roomId, setRoomId] = useState(null); //For leave room
+  const [gameId, setGameId] = useState(null); //For leave game
   const [playerStats, setPlayerStats] = useState(null);
   const navigate = useNavigate();
   /* Socket configuration */
@@ -19,14 +19,14 @@ export default function Games() {
       setPlayerStats(playerStats);
     };
 
-    const handleWaitMatchMaking = (roomId) => {
-      console.log("You are in room: " + roomId);
-      setRoomId(roomId);
+    const handleWaitMatchMaking = (gameId) => {
+      console.log("You are in game: " + gameId);
+      setGameId(gameId);
     };
 
-    const handleStartMatch = (roomId) => {
-      console.log("Start game at " + roomId);
-      navigate("/caro/" + roomId);
+    const handleNavigateGame = (gameId) => {
+      console.log("Navigate to: " + gameId);
+      navigate("/caro/game/" + gameId);
     };
 
     // On getting player stats
@@ -36,7 +36,7 @@ export default function Games() {
     socket.on("wait-match-making", handleWaitMatchMaking);
 
     // On start match
-    socket.on("start-match", handleStartMatch);
+    socket.on("navigate-game", handleNavigateGame);
 
     /* Emit */
     socket.emit("get-player-stats");
@@ -45,7 +45,7 @@ export default function Games() {
     return () => {
       socket.off("receive-player-stats", handleGetPlayerStats);
       socket.off("wait-match-making", handleWaitMatchMaking);
-      socket.off("start-match", handleStartMatch);
+      socket.off("navigate-game", handleNavigateGame);
     };
   }, []);
 
@@ -59,10 +59,10 @@ export default function Games() {
   };
 
   const cancelQuickPlay = () => {
-    console.log("Cancel quick play at: " + roomId);
-    if (socket && roomId) {
-      socket.emit("leave-room", roomId);
-      setRoomId(null); //Reset current room
+    console.log("Cancel quick play at: " + gameId);
+    if (socket && gameId) {
+      socket.emit("leave-game", gameId);
+      setGameId(null); //Reset current game
     }
     setIsModalOpen(false);
   };
@@ -84,7 +84,9 @@ export default function Games() {
           />
           <div>
             <h3 className="text-2xl font-bold text-gray-800">
-              {playerStats.rankId.tier} {playerStats.currentDivision}
+              {playerStats.rankId.tier}{" "}
+              {playerStats.rankId.tier != "Master" &&
+                playerStats.currentDivision}
             </h3>
             <span className="text-sm text-gray-500">
               Tier progress: {playerStats.lp} LP
@@ -109,7 +111,7 @@ export default function Games() {
           Quick Play
         </button>
         <button className="px-6 py-3 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out">
-          Find Room
+          Find Game
         </button>
       </div>
 

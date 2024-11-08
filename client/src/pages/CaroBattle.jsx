@@ -5,23 +5,31 @@ import CaroTimer from "../components/caro-battle/CaroTimer";
 import { useCaroSocket } from "../context/CaroSocketContext";
 import { useNavigate, useParams } from "react-router-dom";
 import CaroResultModal from "../components/caro-battle/CaroResultModal";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
+import { useUserContext } from "../context/UserContext";
 
 function CaroBattle() {
-  const socket = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(true); //Result modal
-  const { roomId } = useParams(); // Take roomId from param
-  const [roomObject, setRoomObject] = useState(null);
+  const { gameId } = useParams(); // Take gameId from param
+  const [gameObject, setGameObject] = useState(null);
   const [result, setResult] = useState(null);
   const [remainingTime, setRemainingTime] = useState(null);
   const navigate = useNavigate();
-  // Config socket
+  const socket = useCaroSocket();
+  const { user } = useUserContext();
+
   useEffect(() => {
-    // Handlers //
-    const handleReceiveRoomObject = (roomObj) => {
-      console.log("Receive room object!");
-      console.log(roomObj);
-      if (!roomObj) navigate("/caro");
-      setRoomObject(roomObj);
+    // Emit request for initial game data when the component is mounted
+    if (gameId) {
+      socket.emit("get-game-object", gameId);
+    }
+
+    const handleReceiveGameObject = (gameObj) => {
+      console.log("Receive game object!");
+      console.log(gameObj);
+      if (!gameObj) navigate("/caro"); // If no game object, redirect
+      setGameObject(gameObj);
     };
 
     const handleReceiveGameResult = (resultObj) => {
@@ -30,39 +38,35 @@ function CaroBattle() {
       setResult(resultObj);
     };
 
-    socket.on("receive-room-object", handleReceiveRoomObject);
+    socket.on("receive-game-object", handleReceiveGameObject);
     socket.on("gameResult", handleReceiveGameResult);
 
-    // Emitting //
-    // Get initial room
-    socket.emit("get-room-object", roomId);
-
     return () => {
-      socket.emit("leave-room", roomId); //Leave current room
-      socket.off("receive-room-object", handleReceiveRoomObject);
+      socket.emit("leave-game", gameId); // Leave current game
+      socket.off("receive-game-object", handleReceiveGameObject);
       socket.off("gameResult", handleReceiveGameResult);
     };
   }, []);
 
   // Poll for updates until the game is over
   useEffect(() => {
-    if (!roomObject) {
+    if (!gameObject) {
       return;
     }
 
-    if (roomObject.isGameOver) {
+    if (gameObject.state === "completed") {
       console.log("Game over runs!");
-      console.log(roomObject.remainingTime);
-      setRemainingTime(roomObject.remainingTime);
+      console.log(gameObject.remainingTime);
+      setRemainingTime(gameObject.remainingTime);
       return;
     }
 
     // Reset timer to real timer
-    setRemainingTime(roomObject.remainingTime);
+    setRemainingTime(gameObject.remainingTime);
 
     // Update timer every 3 seconds
-    const getRoomIntervalId = setInterval(() => {
-      socket.emit("get-room-object", roomId);
+    const getGameIntervalId = setInterval(() => {
+      socket.emit("get-game-object", gameId);
     }, 3000);
 
     //Reset timer
@@ -71,28 +75,39 @@ function CaroBattle() {
     }, 1000);
 
     return () => {
-      clearInterval(getRoomIntervalId);
+      clearInterval(getGameIntervalId);
       clearInterval(countdownIntervalId);
     };
-  }, [roomObject]);
+  }, [gameObject]);
 
   //Wait loading
-  if (roomObject === null) {
-    return;
+  if (!gameObject) {
+    return (
+      <Spin
+        indicator={<LoadingOutlined spin />}
+        size="small"
+        style={{ color: "white" }}
+      />
+    );
   }
 
-  //Taking out both user data
-  const playerIds = Object.keys(roomObject.players);
-  const playerStats = roomObject.players[socket.id];
-  const opponentId = playerIds.find((id) => id !== socket.id);
-  const opponentStats = roomObject.players[opponentId];
+  // Taking out both user data
+  const playerSymbol = gameObject.symbols[user._id];
+  const playerStats = gameObject.players[user._id];
 
-  const playerSymbol = roomObject.symbols[socket.id]; // Take player symbol
-  const isPlayerTurn = playerSymbol && playerSymbol === roomObject.turn;
-  const turnDuration = roomObject.turnDuration;
+  // Find the opponent ID by excluding the playerId
+  const opponentId = Object.keys(gameObject.players).find(
+    (id) => id !== user._id
+  );
+
+  // Access the opponent's stats
+  const opponentStats = gameObject.players[opponentId];
+
+  const isPlayerTurn = playerSymbol && playerSymbol === gameObject.turn;
+  const turnDuration = gameObject.turnDuration;
 
   return (
-    <div className="max-h-full min-h-full overflow-y-auto flex flex-col items-center bg-neutral-700">
+    <div className="max-h-full min-h-full h-screen overflow-y-auto flex flex-col items-center bg-neutral-700">
       <div className="caro-body flex flex-col p-10">
         <div className="player-card self-start flex flex-row w-full items-center">
           <CaroPlayerCard playerStats={playerStats} />
@@ -103,11 +118,11 @@ function CaroBattle() {
         </div>
         <div className="caro-table self-center my-5 bg-slate-300">
           <CaroTable
-            board={roomObject.board}
+            board={gameObject.board}
             playerSymbol={playerSymbol}
             isPlayerTurn={isPlayerTurn}
             pattern={result?.pattern}
-            isGameOver={roomObject?.isGameOver}
+            isGameOver={gameObject?.state === "completed"}
           />
         </div>
         <div className="opponent-card self-start flex flex-row w-full items-center">
@@ -123,6 +138,8 @@ function CaroBattle() {
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
           result={result}
+          socket={socket}
+          gameId={gameId}
         />
       )}
     </div>

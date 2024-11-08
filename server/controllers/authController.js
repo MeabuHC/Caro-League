@@ -37,7 +37,10 @@ const createSendTokens = async (user, res) => {
 };
 
 export const refreshToken = catchAsync(async (req, res, next) => {
-  const { refreshToken } = req.cookies; // Get refresh token from cookies
+  const { accessToken, refreshToken } = req.cookies; // Get refresh token from cookies
+  if (accessToken) {
+    return res.status(200).json({ message: "Access token still valid" });
+  }
 
   // Validate refresh token
   if (!refreshToken) {
