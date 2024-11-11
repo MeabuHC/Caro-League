@@ -15,6 +15,8 @@ class Game {
     this.turnDuration = 20;
     this.remainingTime = this.turnDuration;
     this.gameResult = null;
+    this.moveHistory = [];
+    this.startDate = null;
   }
 
   initializeBoard() {
@@ -22,13 +24,20 @@ class Game {
   }
 
   addPlayer(socket, player) {
-    this.players.size;
-    player.socket = socket;
-    this.players.set(player.userId._id.toString(), player); // Add player with socket ID as key
+    //If this players is not inside the room
+    let oldPlayer = this.players.has(player.userId._id.toString());
+    if (!oldPlayer) {
+      console.log(socket.id + " joins: " + this.id);
+      socket.join(this.id);
+      socket.gameId = this.id; //Assign gameId to socket
+      player.socket = socket;
+      this.players.set(player.userId._id.toString(), player); // Add player with socket ID as key
+    }
   }
 
-  removePlayer(playerId) {
+  disconnectPlayer(playerId) {
     if (this.players.has(playerId)) {
+      console.log(this.players.get(playerId).socket.id + " is removed!");
       this.players.get(playerId).socket = undefined;
     }
   }
@@ -44,7 +53,7 @@ class Game {
   async makeMove([index_X, index_Y], userId) {
     const userSocket = this.players.get(userId).socket;
     if (this.state === "completed") {
-      userSocket.emit("moveError", {
+      userSocket.emit("moveError", this.id, {
         success: false,
         message: "The game is over!",
       });
@@ -59,13 +68,20 @@ class Game {
       return;
     }
 
+    this.moveHistory.push({
+      playerId: userId,
+      position: { x: index_X, y: index_Y },
+      symbol: this.turn,
+      boardState: JSON.parse(JSON.stringify(this.board)),
+      remainingTime: this.remainingTime,
+    });
+
     this.board[index_X][index_Y] = this.turn;
 
     //Check win
     const [isWin, pattern] = this.isWin();
     if (isWin) {
       // Update game status
-      clearInterval(this.turnTimer);
       this.endGame();
 
       // Update stats for winnerStats and loserStats
@@ -89,10 +105,6 @@ class Game {
       this.caroNamespace
         .to(this.id)
         .emit("receive-game-object", this.toObject());
-
-      // Emit 'winner' event to the current player
-      this.caroNamespace.to(this.id).emit("gameResult", this.gameResult);
-
       return;
     }
     if (this.isDraw()) {
@@ -122,8 +134,6 @@ class Game {
       this.caroNamespace
         .to(this.id)
         .emit("receive-game-object", this.toObject());
-      this.caroNamespace.to(this.id).emit("draw", this.gameResult);
-
       return;
     }
 
@@ -189,24 +199,14 @@ class Game {
 
   // Start the game and initialize the turn timer
   startGame() {
-    this.state = "game-started";
+    this.state = "in-progress";
+    this.startDate = Date.now();
     const playerIds = Array.from(this.players.keys());
     const randomTurn = Math.random() > 0.5 ? "X" : "O";
     this.symbols.set(playerIds[0], randomTurn);
     this.symbols.set(playerIds[1], randomTurn === "X" ? "O" : "X");
     this.turn = "X";
     this.startTurnTimer(); // Start the turn timer
-
-    // Send game object and their corresponding userId
-    // console.log("Sending start-match signal");
-    // console.log(this);
-
-    // this.caroNamespace
-    //   .to(this.players.get(playerIds[0]).socket.id)
-    //   .emit("start-match", this.toObject(), playerIds[0]);
-    // this.caroNamespace
-    //   .to(this.players.get(playerIds[1]).socket.id)
-    //   .emit("start-match", this.toObject(), playerIds[1]);
   }
 
   // Start or reset the turn timer
@@ -226,16 +226,24 @@ class Game {
     )?.[1];
 
     if (this.turnTimer) {
-      clearInterval(this.turnTimer); // Clear prev timer
+      clearInterval(this.turnTimer);
     }
 
     this.remainingTime = this.turnDuration;
+    let emitCounter = 0;
+
     this.turnTimer = setInterval(async () => {
       this.remainingTime -= 1;
+      emitCounter += 1;
+
+      // Emit game state every 3 seconds
+      if (emitCounter === 3) {
+        this.emitGameUpdate();
+        emitCounter = 0; // Reset counter
+      }
 
       // Timer runs out
       if (this.remainingTime <= 0) {
-        // End game
         this.endGame();
 
         // Update stats for winner and loser
@@ -256,9 +264,13 @@ class Game {
         this.caroNamespace
           .to(this.id)
           .emit("receive-game-object", this.toObject());
-        this.caroNamespace.to(this.id).emit("gameResult", this.gameResult);
       }
     }, 1000);
+  }
+
+  //Update game
+  emitGameUpdate() {
+    this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
   }
 
   //Set status to game over
@@ -267,6 +279,16 @@ class Game {
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
     }
+
+    //Clear socket game id
+    for (const player of this.players.values()) {
+      if (player.socket && player.socket.gameId) {
+        player.socket.gameId = undefined;
+      }
+    }
+
+    console.log(this.startDate);
+    console.log(this.moveHistory);
   }
 
   // Convert to plain object for the client, including the timer, no socket
@@ -286,6 +308,7 @@ class Game {
       symbols: Object.fromEntries(this.symbols),
       turnDuration: this.turnDuration,
       remainingTime: this.remainingTime, // Add remaining time to client data
+      result: this.gameResult,
     };
   }
 }

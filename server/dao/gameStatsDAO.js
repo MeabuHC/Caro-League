@@ -63,34 +63,18 @@ class GameStatsDAO {
       playerStats.currentDivision
     );
 
-    // Uprank
-    if (
-      playerStats.rankId.tier != "Master" &&
-      playerStats.lp >= playerStats.rankId.lpThreshold
-    ) {
-      playerStats.lp -= playerStats.rankId.lpThreshold;
-
-      // Final division
-      if (divisionIndex === playerStats.rankId.divisions.length - 1) {
-        // Move to next tier
-        const nextTier = await rankingDAO.getRankByRankName(
-          playerStats.rankId.nextRankTier
-        );
-
-        playerStats.rankId = nextTier._id;
-        if (nextTier.tier === "Master") {
-          playerStats.currentDivision = "";
-        }
-        playerStats.currentDivision = nextTier.divisions[0]; // Reset to first division of new tier
-      } else {
-        // Move to next division
-        playerStats.currentDivision =
-          playerStats.rankId.divisions[divisionIndex + 1];
-      }
-    }
-
-    // Derank
-    else if (playerStats.lp < 0) {
+    // Derank for master
+    if (playerStats.lp < 0 && playerStats.rankId.tier == "Master") {
+      // Move to previous tier
+      const previousRankTierName = playerStats.rankId.previousRankTier;
+      const previousTier = await rankingDAO.getRankByRankName(
+        previousRankTierName
+      );
+      playerStats.rankId = previousTier._id;
+      playerStats.currentDivision =
+        previousTier.divisions[previousTier.divisions.length - 1]; // Reset to last division of the tier
+      playerStats.lp += previousTier.lpThreshold;
+    } else if (playerStats.lp < 0) {
       playerStats.lp += playerStats.rankId.lpThreshold; // Reset LP
 
       // Check if already in the first division
@@ -114,6 +98,30 @@ class GameStatsDAO {
         // Move to previous division
         playerStats.currentDivision =
           playerStats.rankId.divisions[divisionIndex - 1];
+      }
+    }
+    // Uprank
+    else if (
+      playerStats.rankId.tier != "Master" &&
+      playerStats.lp >= playerStats.rankId.lpThreshold
+    ) {
+      playerStats.lp -= playerStats.rankId.lpThreshold;
+
+      // Final division
+      if (divisionIndex === playerStats.rankId.divisions.length - 1) {
+        // Move to next tier
+        const nextTier = await rankingDAO.getRankByRankName(
+          playerStats.rankId.nextRankTier
+        );
+
+        playerStats.rankId = nextTier._id;
+        if (nextTier.tier === "Master") {
+          playerStats.currentDivision = "";
+        } else playerStats.currentDivision = nextTier.divisions[0]; // Reset to first division of new tier
+      } else {
+        // Move to next division
+        playerStats.currentDivision =
+          playerStats.rankId.divisions[divisionIndex + 1];
       }
     }
 

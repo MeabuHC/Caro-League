@@ -49,3 +49,13 @@
 .ant-layout-sider-trigger {
   background: #ff6104 !important;
 }
+
+.ant-layout-sider:not(.ant-layout-sider-collapsed) {
+  max-width: 140px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+}
+
+.ant-layout-sider:not(.ant-layout-sider-collapsed) .ant-layout-sider-trigger {
+  width: 140px !important;
+}

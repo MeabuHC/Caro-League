@@ -1,0 +1,12 @@
+.container {
+  transform-origin: top left; /* Ensure scaling happens from the top left */
+  transition: transform 0.3s ease-in-out; /* Smooth transition for scaling */
+}
+
+@media (max-width: 1024px) {
+  .container {
+    transform: scale(
+      calc(1 - (100vw - 320px) / 3200)
+    ); /* Continuous scaling as the window shrinks */
+  }
+}

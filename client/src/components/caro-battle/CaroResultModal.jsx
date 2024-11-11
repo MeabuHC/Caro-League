@@ -30,7 +30,7 @@ function CaroResultModal({
     //Accept
     socket.on("new-game", (newGameId) => {
       console.log("receive new-game" + newGameId);
-      navigate("/caro/" + newGameId);
+      navigate("/caro/game/" + newGameId);
     });
 
     //Opponent decline rematch request
@@ -86,6 +86,11 @@ function CaroResultModal({
       footer={null}
       className={styles.modal}
       onCancel={handleCloseModal}
+      getContainer={false}
+      maskClosable={true}
+      mask={false}
+      focusTriggerAfterClose={false}
+      wrapClassName={styles.modal_wrapper}
     >
       {!receiveRematch ? (
         <div className="flex flex-row gap-2 px-4 py-10">

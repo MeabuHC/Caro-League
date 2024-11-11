@@ -5,11 +5,16 @@
   outline: none;
 }
 
-.modal :global(.ant-modal-content) {
+.modal :global(.ant-modal-content),
+:global(.ant-modal) {
   padding: 0;
   max-width: 400px;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.modal_wrapper {
+  position: absolute !important;
 }
 
 .modal :global(.ant-modal-close):hover {

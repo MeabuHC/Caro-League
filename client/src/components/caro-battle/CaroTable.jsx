@@ -5,9 +5,16 @@ import { useCaroSocket } from "../../context/CaroSocketContext";
 const rows = 15;
 const columns = 20;
 
-function CaroTable({ board, playerSymbol, isPlayerTurn, pattern, isGameOver }) {
+function CaroTable({
+  board,
+  gameId,
+  playerSymbol,
+  isPlayerTurn,
+  pattern,
+  isGameOver,
+}) {
   const [hoveredCell, setHoveredCell] = useState(null);
-  const socket = useCaroSocket();
+  const { socket } = useCaroSocket();
 
   // Check if a cell is part of the winning pattern
   const isInWinningPattern = (i, y) => {
@@ -27,7 +34,7 @@ function CaroTable({ board, playerSymbol, isPlayerTurn, pattern, isGameOver }) {
     ) {
       console.log("Make move!");
       setHoveredCell(null);
-      socket.emit("makeMove", [i, y]);
+      socket.emit("makeMove", gameId, [i, y]);
     }
   }
 

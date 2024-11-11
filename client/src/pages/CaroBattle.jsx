@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CaroTable from "../components/caro-battle/CaroTable";
 import CaroPlayerCard from "../components/caro-battle/CaroPlayerCard";
 import CaroTimer from "../components/caro-battle/CaroTimer";
@@ -8,21 +8,27 @@ import CaroResultModal from "../components/caro-battle/CaroResultModal";
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useUserContext } from "../context/UserContext";
+import styles from "../styles/pages/CaroBattle.module.css";
 
 function CaroBattle() {
-  const [isModalOpen, setIsModalOpen] = useState(true); //Result modal
   const { gameId } = useParams(); // Take gameId from param
+  const [isModalOpen, setIsModalOpen] = useState(true); //Result modal
   const [gameObject, setGameObject] = useState(null);
-  const [result, setResult] = useState(null);
   const [remainingTime, setRemainingTime] = useState(null);
   const navigate = useNavigate();
-  const socket = useCaroSocket();
   const { user } = useUserContext();
+  const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
 
   useEffect(() => {
+    //Re-connect
+    if (!socket) {
+      initializeConnection();
+      return;
+    }
+
     // Emit request for initial game data when the component is mounted
-    if (gameId) {
-      socket.emit("get-game-object", gameId);
+    if (gameId && socket) {
+      socket.emit("get-initial-game", gameId);
     }
 
     const handleReceiveGameObject = (gameObj) => {
@@ -32,21 +38,16 @@ function CaroBattle() {
       setGameObject(gameObj);
     };
 
-    const handleReceiveGameResult = (resultObj) => {
-      console.log("Receive result!");
-      console.log(resultObj);
-      setResult(resultObj);
-    };
-
-    socket.on("receive-game-object", handleReceiveGameObject);
-    socket.on("gameResult", handleReceiveGameResult);
+    if (socket) {
+      socket.on("receive-game-object", handleReceiveGameObject);
+    }
 
     return () => {
-      socket.emit("leave-game", gameId); // Leave current game
-      socket.off("receive-game-object", handleReceiveGameObject);
-      socket.off("gameResult", handleReceiveGameResult);
+      if (socket) {
+        disconnectSocket();
+      }
     };
-  }, []);
+  }, [socket, gameId]);
 
   // Poll for updates until the game is over
   useEffect(() => {
@@ -55,8 +56,6 @@ function CaroBattle() {
     }
 
     if (gameObject.state === "completed") {
-      console.log("Game over runs!");
-      console.log(gameObject.remainingTime);
       setRemainingTime(gameObject.remainingTime);
       return;
     }
@@ -64,18 +63,12 @@ function CaroBattle() {
     // Reset timer to real timer
     setRemainingTime(gameObject.remainingTime);
 
-    // Update timer every 3 seconds
-    const getGameIntervalId = setInterval(() => {
-      socket.emit("get-game-object", gameId);
-    }, 3000);
-
     //Reset timer
     const countdownIntervalId = setInterval(() => {
       setRemainingTime((prev) => Math.max(prev - 1, 0));
     }, 1000);
 
     return () => {
-      clearInterval(getGameIntervalId);
       clearInterval(countdownIntervalId);
     };
   }, [gameObject]);
@@ -107,8 +100,10 @@ function CaroBattle() {
   const turnDuration = gameObject.turnDuration;
 
   return (
-    <div className="max-h-full min-h-full h-screen overflow-y-auto flex flex-col items-center bg-neutral-700">
-      <div className="caro-body flex flex-col p-10">
+    <div
+      className={`${styles.container} max-h-full min-h-full h-screen overflow-y-auto items-center bg-neutral-700 grid grid-cols-[auto_auto_1fr] px-10`}
+    >
+      <div className="caro-body flex flex-col pt-2 relative self-start overflow-auto mr-10">
         <div className="player-card self-start flex flex-row w-full items-center">
           <CaroPlayerCard playerStats={playerStats} />
           <CaroTimer
@@ -119,9 +114,10 @@ function CaroBattle() {
         <div className="caro-table self-center my-5 bg-slate-300">
           <CaroTable
             board={gameObject.board}
+            gameId={gameObject.id}
             playerSymbol={playerSymbol}
             isPlayerTurn={isPlayerTurn}
-            pattern={result?.pattern}
+            pattern={gameObject?.result?.pattern}
             isGameOver={gameObject?.state === "completed"}
           />
         </div>
@@ -132,16 +128,21 @@ function CaroBattle() {
             seconds={!isPlayerTurn ? remainingTime : turnDuration}
           />
         </div>
+        {gameObject.result && (
+          <CaroResultModal
+            isModalOpen={isModalOpen}
+            setIsModalOpen={setIsModalOpen}
+            result={gameObject.result}
+            socket={socket}
+            gameId={gameId}
+          />
+        )}
       </div>
-      {result && (
-        <CaroResultModal
-          isModalOpen={isModalOpen}
-          setIsModalOpen={setIsModalOpen}
-          result={result}
-          socket={socket}
-          gameId={gameId}
-        />
-      )}
+
+      <div className="second-column bg-neutral-800 p-5 overflow-auto">
+        {/* Add your content for the second column here */}
+        <p>Some content for the second column</p>
+      </div>
     </div>
   );
 }

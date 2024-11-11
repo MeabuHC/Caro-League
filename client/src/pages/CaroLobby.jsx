@@ -6,65 +6,101 @@ import { useNavigate } from "react-router-dom";
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
 export default function Games() {
-  const socket = useCaroSocket();
+  const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gameId, setGameId] = useState(null); //For leave game
   const [playerStats, setPlayerStats] = useState(null);
+  const [matchMaking, setMatchMaking] = useState(false);
   const navigate = useNavigate();
+
   /* Socket configuration */
   useEffect(() => {
-    // Handlers
-    const handleGetPlayerStats = (playerStats) => {
-      console.log(playerStats);
-      setPlayerStats(playerStats);
-    };
+    setPlayerStats({
+      _id: "6728dd5a8ccd5cfb65f6dcfd",
+      userId: {
+        _id: "67112be6d170d40b77e2b600",
+        username: "Meabu",
+        email: "congminh23092004@gmail.com",
+        avatarUrl:
+          "https://res.cloudinary.com/dfa4flhk3/image/upload/v1730947678/avatars/ep8kzyjuzvcvaof36jyu.jpg",
+        role: "player",
+        createdAt: "2024-10-17T15:23:18.831Z",
+        passwordChangedAt: "2024-10-28T07:44:30.886Z",
+      },
+      seasonId: {
+        _id: "670f30e72fdaab7bd6c6c242",
+        name: "S2-2024",
+        startDate: "2024-06-30T17:00:00.000Z",
+        endDate: "2024-12-30T17:00:00.000Z",
+        active: true,
+      },
+      rankId: {
+        _id: "67190d9b7d9cfb73241731e4",
+        tier: "Master",
+        divisions: [],
+        lpThreshold: 0,
+        imageUrl: "/img/ranks/master.png",
+        nextRankTier: null,
+        previousRankTier: "Diamond",
+        __v: 0,
+      },
+      totalGames: 152,
+      wins: 91,
+      losses: 53,
+      draws: 0,
+      lp: 110,
+      createdAt: "2024-11-04T14:42:34.557Z",
+      currentDivision: "IV",
+    });
 
-    const handleWaitMatchMaking = (gameId) => {
-      console.log("You are in game: " + gameId);
-      setGameId(gameId);
-    };
+    if (socket) {
+      console.log("Socket is available");
+      const handleWaitMatchMaking = (gameId) => {
+        console.log("You are in game: " + gameId);
+        setGameId(gameId);
+      };
 
-    const handleNavigateGame = (gameId) => {
-      console.log("Navigate to: " + gameId);
-      navigate("/caro/game/" + gameId);
-    };
+      const handleNavigateGame = (gameId) => {
+        console.log("Navigate to: " + gameId);
+        navigate("/caro/game/" + gameId);
+      };
 
-    // On getting player stats
-    socket.on("receive-player-stats", handleGetPlayerStats);
+      socket.on("wait-match-making", handleWaitMatchMaking);
+      socket.on("navigate-game", handleNavigateGame);
 
-    // On wait match
-    socket.on("wait-match-making", handleWaitMatchMaking);
+      socket.emit("get-player-stats");
 
-    // On start match
-    socket.on("navigate-game", handleNavigateGame);
+      return () => {
+        socket.off("wait-match-making", handleWaitMatchMaking);
+        socket.off("navigate-game", handleNavigateGame);
+      };
+    }
+  }, [socket]);
 
-    /* Emit */
-    socket.emit("get-player-stats");
+  useEffect(() => {
+    if (matchMaking && socket) {
+      setIsModalOpen(true);
+      socket.emit("find-match-making");
+      console.log("Start quick play");
+    }
+  }, [matchMaking, socket]);
 
-    // Cleanup
-    return () => {
-      socket.off("receive-player-stats", handleGetPlayerStats);
-      socket.off("wait-match-making", handleWaitMatchMaking);
-      socket.off("navigate-game", handleNavigateGame);
-    };
-  }, []);
-
-  if (!playerStats) return; //Wait loading
+  if (!playerStats) return null;
 
   /* Buttons method */
   const startQuickPlay = () => {
-    setIsModalOpen(true);
-    socket.emit("find-match-making");
-    console.log("Start quick play");
+    setMatchMaking(true);
+    initializeConnection();
   };
 
   const cancelQuickPlay = () => {
     console.log("Cancel quick play at: " + gameId);
     if (socket && gameId) {
-      socket.emit("leave-game", gameId);
-      setGameId(null); //Reset current game
+      socket.emit("leave-match-making", gameId);
+      setGameId(null);
     }
     setIsModalOpen(false);
+    disconnectSocket(); // Disconnect after canceling
   };
 
   const progressBarPercent =

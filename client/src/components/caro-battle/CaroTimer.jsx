@@ -16,13 +16,13 @@ function CaroTimer({ type, seconds }) {
 
   return (
     <div
-      className={`ml-auto h-14 w-40  flex  flex-row items-center px-6 rounded-md transition-all ease-linear duration-100 ${divCSS} `}
+      className={`ml-auto h-10 w-40  flex  flex-row items-center px-6 rounded-md transition-all ease-linear duration-100 ${divCSS} `}
     >
       <div className="clock-icon-icon">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="22"
-          height="22"
+          width="18"
+          height="18"
           viewBox="0 0 20 20"
           className={clockCSS}
           fill="white"
@@ -33,7 +33,7 @@ function CaroTimer({ type, seconds }) {
         </svg>
       </div>
       <span
-        className={`clock-time font-roboto text-xl ml-auto ${clockTimeCSS} `}
+        className={`clock-time font-roboto text-base ml-auto ${clockTimeCSS} `}
       >
         {formatTime(seconds)}
       </span>

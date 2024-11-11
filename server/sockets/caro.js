@@ -14,8 +14,8 @@ let gameMap = new GameMap();
 const Caro = {
   startGame: (gameId) => {
     // Get the sockets in the game
-    console.log("This is gameMap from startGame");
-    console.log(gameMap);
+    // console.log("This is gameMap from startGame");
+    // console.log(gameMap);
 
     const gameObj = gameMap.games.get(gameId);
     gameObj.startGame();
@@ -24,11 +24,12 @@ const Caro = {
   // Final function for finding a match
   findMatchMaking: async (socket, caroNamespace, playerStats) => {
     // Check if the user is already in a game
-    if (gameMap.getGameForUser(playerStats.userId._id)) {
-      socket.emit("already-in-game");
-      socket.disconnect();
-      return;
-    }
+
+    // if (gameMap.getGameForUser(playerStats.userId._id)) {
+    //   socket.emit("already-in-game");
+    //   socket.disconnect();
+    //   return;
+    // }
 
     let gameId; // Variable to store the game
 
@@ -36,20 +37,13 @@ const Caro = {
     gameId = await findGameId(caroNamespace);
 
     // Join the determined game and update game map
-    console.log(socket.id + " joins: " + gameId);
-    socket.join(gameId);
-
     let game = gameMap.games.get(gameId);
     if (!game) {
       game = new Game(gameId, caroNamespace);
       gameMap.addGame(game);
     }
-    game.addPlayer(socket, playerStats);
 
-    console.log("This runs!");
-    console.log(game.players);
-    console.log(game.players.size);
-    console.log(game.state);
+    game.addPlayer(socket, playerStats);
 
     // Check condition to start the game
     if (isReadyToStartGame(gameId)) {
@@ -63,38 +57,62 @@ const Caro = {
     }
   },
 
-  //Cancel requester quick play
-  leaveGame: (socket, caroNamespace, userId, gameId) => {
-    console.log(socket.id + " leaves " + gameId);
-    socket.leave(gameId);
-
-    //Update game
-    const currentGame = gameMap.games.get(gameId);
-    if (currentGame) {
-      currentGame.removePlayer(userId);
-
-      //This will never happens because its not kicking the player out, its deleting the socket
-      if (currentGame.players.size === 0) {
-        gameMap.removeGame(currentGame);
-      }
+  leaveMatchMaking: (socket, gameId, userId) => {
+    const gameObj = gameMap.games.get(gameId);
+    if (gameObj && gameObj.players.has(userId)) {
+      gameObj.players.delete(userId);
     }
+    console.log(socket.id + " leaves " + gameId);
+    socket.gameId = undefined;
+    socket.leave(gameId); //Leave the room
   },
 
   //Send game object to requester
-  sendGameObject: (socket, gameId) => {
+  sendInitialGame: (socket, gameId, userId) => {
     const gameObj = gameMap.games.get(gameId);
-    socket.emit("receive-game-object", gameObj?.toObject());
+    if (gameObj) {
+      const player = gameObj.players.get(userId);
+      //Reconnect
+      console.log("Current socket in room: ");
+      console.log(player.socket?.id);
+      console.log("New socket id ");
+      console.log(socket.id);
+      if (!player.socket && gameObj.state === "in-progress") {
+        socket.gameId = gameId;
+        player.socket = socket;
+        socket.join(gameId);
+      }
+      socket.emit("receive-game-object", gameObj.toObject());
+    } else {
+      socket.emit("receive-game-object", null);
+    }
   },
 
   // Update the game board with the player's move
-  updateGameBoard: async (userId, [index_X, index_Y]) => {
-    const gameObj = gameMap.getGameByUserId(userId);
+  updateGameBoard: async (gameId, userId, [index_X, index_Y]) => {
+    const gameObj = gameMap.games.get(gameId);
     gameObj.makeMove([index_X, index_Y], userId);
   },
 
-  // Handle socket disconnection
-  handleDisconnect: (socket, caroNamespace) => {
-    console.log(`${socket.id} disconnected!`);
+  handleDisconnect: (socket, caroNamespace, userId) => {
+    //If having a game or matchmaking
+    if (socket.gameId) {
+      console.log(`${socket.id} disconnected from game ${socket.gameId}`);
+      const currentGame = gameMap.games.get(socket.gameId);
+      //Match making or completed game
+      if (
+        currentGame.state === "waiting" ||
+        currentGame.state === "completed"
+      ) {
+        currentGame.players.delete(userId);
+      }
+      //In progress
+      else if (currentGame.state === "in-progress") {
+        currentGame.disconnectPlayer(userId);
+      }
+    } else {
+      console.log(`${socket.id} disconnected with no active game.`);
+    }
   },
 
   // Handle send rematch request
@@ -136,11 +154,12 @@ const Caro = {
       gameMap.addGame(newGame);
 
       // Prepare the new game and update player stats
-      for (const [playerId] of oldGame.players.entries()) {
+      for (const [playerId, playerStats] of oldGame.players.entries()) {
         //Refetch
         const newStats = await GameStatsDAO.getGameStatsFromUserId(playerId);
+        newStats.socket = playerStats.socket;
 
-        newGame.addPlayer(playerId, newStats);
+        newGame.addPlayer(newStats.socket, newStats);
       }
 
       // Notify both players in the game of the new game ID
@@ -203,74 +222,78 @@ async function createUniqueGameId(caroNamespace) {
 
 //-----------------  EXPORT HANDLER --------------//
 const caroHandlers = async (socket, caroNamespace) => {
-  console.log("New client connected: " + socket.id); // New player
+  try {
+    console.log("New client connected: " + socket.id); // New player
 
-  // Extract user ID from JWT token
-  const token = getAccessTokenFromCookies(socket.request.headers.cookie);
-  if (!token) {
-    console.log("Unauthorized!");
-    socket.emit("unauthorized", {
-      status: "fail",
-      message: "jwt token missing or invalid!",
+    // Extract user ID from JWT token
+    const token = getAccessTokenFromCookies(socket.request.headers.cookie);
+    // if (!token) {
+    //   console.log("Unauthorized!");
+    //   socket.emit("unauthorized", {
+    //     status: "fail",
+    //     message: "jwt token missing or invalid!",
+    //   });
+    // }
+    const decoded = await getTokenPayload(token);
+    const userId = decoded.id;
+
+    // Handle request player stats
+    socket.on("get-player-stats", async () => {
+      let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+      if (playerStats === null) {
+        playerStats = await GameStatsDAO.createGameStatsForUserId(decoded.id);
+      }
+      socket.emit("receive-player-stats", playerStats);
     });
+
+    // Handle finding a match
+    socket.on("find-match-making", async () => {
+      let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+      Caro.findMatchMaking(socket, caroNamespace, playerStats);
+    });
+
+    //Handle cancel match-making
+    socket.on("leave-match-making", async (gameId) => {
+      Caro.leaveMatchMaking(socket, gameId, userId);
+    });
+
+    //Handle sending game object
+    socket.on("get-initial-game", (gameId) => {
+      Caro.sendInitialGame(socket, gameId, userId);
+    });
+
+    // Sending player move to the other player
+    socket.on("makeMove", async (gameId, index) => {
+      await Caro.updateGameBoard(gameId, userId, index);
+    });
+
+    // Handle send rematch request
+    socket.on("send-rematch-request", (gameId) => {
+      Caro.handleSendRematchRequest(socket, gameId);
+    });
+
+    // Handle cancel rematch request
+    socket.on("cancel-rematch-request", (gameId) => {
+      Caro.handleCancelRematchRequest(socket, gameId);
+    });
+
+    // Handle decline rematch request
+    socket.on("decline-rematch-request", (gameId) => {
+      Caro.handleDeclineRematchRequest(socket, gameId);
+    });
+
+    // Handle accept rematch request
+    socket.on("accept-rematch-request", (gameId) => {
+      Caro.handleAcceptRematchRequest(caroNamespace, gameId);
+    });
+
+    // Handle socket disconnection
+    socket.on("disconnect", () => {
+      Caro.handleDisconnect(socket, caroNamespace, userId);
+    });
+  } catch (error) {
+    console.log(error);
   }
-  const decoded = await getTokenPayload(token);
-  const userId = decoded.id;
-
-  // Handle request player stats
-  socket.on("get-player-stats", async () => {
-    let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
-    if (playerStats === null) {
-      playerStats = await GameStatsDAO.createGameStatsForUserId(decoded.id);
-    }
-    socket.emit("receive-player-stats", playerStats);
-  });
-
-  // Handle finding a match
-  socket.on("find-match-making", async () => {
-    let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
-    Caro.findMatchMaking(socket, caroNamespace, playerStats);
-  });
-
-  //Handle cancel match
-  socket.on("leave-game", (gameId) => {
-    Caro.leaveGame(socket, caroNamespace, userId, gameId);
-  });
-
-  //Handle sending game object
-  socket.on("get-game-object", (gameId) => {
-    Caro.sendGameObject(socket, gameId);
-  });
-
-  // Sending player move to the other player
-  socket.on("makeMove", async (index) => {
-    await Caro.updateGameBoard(userId, index);
-  });
-
-  // Handle send rematch request
-  socket.on("send-rematch-request", (gameId) => {
-    Caro.handleSendRematchRequest(socket, gameId);
-  });
-
-  // Handle cancel rematch request
-  socket.on("cancel-rematch-request", (gameId) => {
-    Caro.handleCancelRematchRequest(socket, gameId);
-  });
-
-  // Handle decline rematch request
-  socket.on("decline-rematch-request", (gameId) => {
-    Caro.handleDeclineRematchRequest(socket, gameId);
-  });
-
-  // Handle accept rematch request
-  socket.on("accept-rematch-request", (gameId) => {
-    Caro.handleAcceptRematchRequest(caroNamespace, gameId);
-  });
-
-  // Handle socket disconnection
-  socket.on("disconnect", () => {
-    Caro.handleDisconnect(socket, caroNamespace);
-  });
 };
 
 // Export the Caro handlers
