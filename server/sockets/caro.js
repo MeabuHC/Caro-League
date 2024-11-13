@@ -6,6 +6,7 @@ import {
 import GameStatsDAO from "../dao/gameStatsDAO.js";
 import Game from "./game.js";
 import { v4 as uuidv4 } from "uuid";
+import seasonDAO from "../dao/seasonDAO.js";
 
 // Saving game
 let gameMap = new GameMap();
@@ -18,6 +19,7 @@ const Caro = {
     // console.log(gameMap);
 
     const gameObj = gameMap.games.get(gameId);
+    console.log(gameObj);
     gameObj.startGame();
   },
 
@@ -39,7 +41,10 @@ const Caro = {
     // Join the determined game and update game map
     let game = gameMap.games.get(gameId);
     if (!game) {
-      game = new Game(gameId, caroNamespace);
+      const seasonId = (
+        await seasonDAO.getCurrentActiveSeason()
+      )._id.toString();
+      game = new Game(gameId, seasonId, caroNamespace);
       gameMap.addGame(game);
     }
 
@@ -144,7 +149,10 @@ const Caro = {
     try {
       const oldGame = gameMap.games.get(gameId);
       const newGameId = await createUniqueGameId(caroNamespace);
-      const newGame = new Game(newGameId, caroNamespace);
+      const seasonId = (
+        await seasonDAO.getCurrentActiveSeason()
+      )._id.toString();
+      const newGame = new Game(newGameId, seasonId, caroNamespace);
       // Move all players to new game
       caroNamespace.in(oldGame.id).socketsJoin(newGameId);
       caroNamespace.in(newGameId).socketsLeave(oldGame.id);

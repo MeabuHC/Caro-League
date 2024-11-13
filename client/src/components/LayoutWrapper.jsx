@@ -9,11 +9,18 @@ const { Content } = Layout;
 // Basic layout: Header + Sidebar + Content
 export default function LayoutWrapper() {
   return (
-    <Layout style={{ maxHeight: "100vh", overflowY: "hidden" }}>
+    <Layout
+      style={{
+        height: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <CustomHeader />
-      <Layout hasSider={true}>
+      <Layout hasSider style={{ flexGrow: 1 }}>
         <CustomSider />
-        <Content>
+        <Content style={{ overflowY: "auto" }}>
           <Outlet />
         </Content>
       </Layout>

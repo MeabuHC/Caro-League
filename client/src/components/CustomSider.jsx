@@ -41,7 +41,7 @@ const CustomSider = () => {
       className={styles.sider}
       collapsible
       collapsedWidth={70}
-      defaultCollapsed={false}
+      defaultCollapsed={true}
     >
       <Menu items={items} selectedKeys={selectedKey ? [selectedKey] : []} />
     </Sider>

@@ -1,8 +1,8 @@
 import React from "react";
 
 function CaroTimer({ type, seconds }) {
-  const divCSS = type ? "bg-gray-950" : "bg-gray-300";
-  const clockTimeCSS = type ? "text-white" : "text-gray-400";
+  const divCSS = type ? "#262421" : "#989795";
+  const clockTimeCSS = type ? "white" : "#61605E";
   const clockCSS = type ? "opacity-100" : "opacity-0";
 
   // Function to convert seconds to mm:ss format
@@ -16,7 +16,8 @@ function CaroTimer({ type, seconds }) {
 
   return (
     <div
-      className={`ml-auto h-10 w-40  flex  flex-row items-center px-6 rounded-md transition-all ease-linear duration-100 ${divCSS} `}
+      className={`ml-auto h-10 w-40 flex flex-row items-center justify-center px-6 rounded-md transition-all ease-linear duration-100 ${divCSS} `}
+      style={{ backgroundColor: divCSS }}
     >
       <div className="clock-icon-icon">
         <svg
@@ -33,7 +34,8 @@ function CaroTimer({ type, seconds }) {
         </svg>
       </div>
       <span
-        className={`clock-time font-roboto text-base ml-auto ${clockTimeCSS} `}
+        className={`clock-time font-roboto text-base ml-auto`}
+        style={{ color: clockTimeCSS }}
       >
         {formatTime(seconds)}
       </span>

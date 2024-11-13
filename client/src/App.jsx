@@ -13,15 +13,16 @@ import Settings from "./pages/Settings";
 import { UserProvider } from "./context/UserContext";
 import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
+import CaroBattleHistory from "./pages/CaroBattleHistory";
 
 function App() {
   return (
     <UserProvider>
       <BrowserRouter>
         <Routes>
+          {/* Same Layout Route */}
           <Route path="/" element={<LayoutWrapper />}>
             <Route index element={<Home />} />
-
             {/* Protected routes */}
             <Route
               path="profile"
@@ -50,15 +51,13 @@ function App() {
             <Route
               path="caro"
               element={
-                <ProtectedRoute>
-                  <CaroSocketProvider>
-                    <Outlet />
-                  </CaroSocketProvider>
-                </ProtectedRoute>
+                <CaroSocketProvider>
+                  <Outlet />
+                </CaroSocketProvider>
               }
             >
               <Route index element={<CaroLobby />} />
-              <Route path="game/:gameId" element={<CaroBattleWrapper />} />
+              <Route path="game/live/:gameId" element={<CaroBattleWrapper />} />
             </Route>
           </Route>
 

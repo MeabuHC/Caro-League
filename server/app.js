@@ -7,6 +7,7 @@ import cors from "cors";
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import seasonRoutes from "./routes/seasonRoutes.js";
+import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
 import errorController from "./controllers/errorController.js";
 
 const app = new express();
@@ -41,6 +42,7 @@ app.use(cookieParser());
 app.use("/", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/seasons", seasonRoutes);
+app.use("/api/v1/games", gameHistoryRoutes);
 
 //Handle undefined route
 app.all("*", (req, res, next) => {

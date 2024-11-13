@@ -1,0 +1,27 @@
+.result_buttons h1 {
+  color: white;
+}
+
+.result_buttons button {
+  background-color: #3c3a38;
+  color: #c5c4c4;
+  transition: all 0.3s ease;
+  padding: 0.4rem 1.4rem;
+  text-align: center;
+  border-radius: 0.3rem;
+}
+
+.result_buttons button:hover {
+  background-color: #444340;
+  color: #e2e1e1;
+}
+
+.result_buttons .btn_review {
+  background-color: #81b64c;
+  color: white;
+}
+
+.result_buttons .btn_review:hover {
+  background-color: #9ecc5e;
+  color: white;
+}

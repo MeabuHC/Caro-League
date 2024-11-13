@@ -14,10 +14,10 @@ export const getAllSeasons = catchAsync(async (req, res) => {
 });
 
 // Get a specific season by ID
-export const getSeasonById = catchAsync(async (req, res) => {
+export const getSeasonById = catchAsync(async (req, res, next) => {
   const season = await seasonDAO.getSeasonById(req.params.id);
   if (!season) {
-    return new AppError("Season not found", 404);
+    return next(new AppError("Season not found", 404));
   }
   res.status(200).json({
     status: "success",
@@ -26,7 +26,7 @@ export const getSeasonById = catchAsync(async (req, res) => {
 });
 
 // Create a new season
-export const createNewSeason = catchAsync(async (req, res) => {
+export const createNewSeason = catchAsync(async (req, res, next) => {
   const season = await seasonDAO.createSeason(req.body);
   res.status(201).json({
     status: "success",
@@ -35,10 +35,10 @@ export const createNewSeason = catchAsync(async (req, res) => {
 });
 
 // Update a season
-export const updateSeason = catchAsync(async (req, res) => {
+export const updateSeason = catchAsync(async (req, res, next) => {
   const season = await seasonDAO.updateSeason(req.params.id, req.body);
   if (!season) {
-    return new AppError("Season not found", 404);
+    return next(new AppError("Season not found", 404));
   }
   res.status(200).json({
     status: "success",

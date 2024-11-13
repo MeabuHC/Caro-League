@@ -84,7 +84,7 @@ function CaroTable({
   }
 
   return (
-    <table className="table-fixed border-2px border-black">
+    <table className="table-fixed mx-auto border border-black">
       <tbody>{table}</tbody>
     </table>
   );

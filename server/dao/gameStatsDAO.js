@@ -26,27 +26,27 @@ class GameStatsDAO {
   }
 
   // Update player stats after the match
-  async updatePlayerStats(winnerStats, loserStats, status, lp) {
+  async updatePlayerStats(winnerStats, loserStats, status, lpChanges) {
     winnerStats.totalGames += 1;
     loserStats.totalGames += 1;
 
     if (status === "result") {
       winnerStats.wins += 1;
-      winnerStats.lp += lp;
+      winnerStats.lp += lpChanges.win;
 
       loserStats.losses += 1;
       //Only derank if lp = 0
-      if (loserStats.lp !== 0 && loserStats.lp - lp < 0) {
+      if (loserStats.lp !== 0 && loserStats.lp + lpChanges.lose < 0) {
         loserStats.lp = 0;
       } else {
-        loserStats.lp -= lp;
+        loserStats.lp += lpChanges.lose;
       }
     } else if (status === "draw") {
       winnerStats.draws += 1;
-      winnerStats.lp += lp;
+      winnerStats.lp += lpChanges.draw;
 
       loserStats.draws += 1;
-      loserStats.lp += lp;
+      loserStats.lp += lpChanges.draw;
     }
 
     //Update both player ranks

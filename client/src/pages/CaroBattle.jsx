@@ -9,6 +9,7 @@ import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useUserContext } from "../context/UserContext";
 import styles from "../styles/pages/CaroBattle.module.css";
+import CaroSidebar from "../components/caro-battle/CaroSidebar";
 
 function CaroBattle() {
   const { gameId } = useParams(); // Take gameId from param
@@ -18,6 +19,8 @@ function CaroBattle() {
   const navigate = useNavigate();
   const { user } = useUserContext();
   const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
+  const [waitingRematch, setWaitingRematch] = useState(false);
+  const [receiveRematch, setReceiveRematch] = useState(false);
 
   useEffect(() => {
     //Re-connect
@@ -101,17 +104,17 @@ function CaroBattle() {
 
   return (
     <div
-      className={`${styles.container} max-h-full min-h-full h-screen overflow-y-auto items-center bg-neutral-700 grid grid-cols-[auto_auto_1fr] px-10`}
+      className={`${styles.container} max-h-full min-h-full h-full overflow-y-auto items-center grid grid-cols-[auto_auto_1fr] px-10 py-3`}
     >
-      <div className="caro-body flex flex-col pt-2 relative self-start overflow-auto mr-10">
-        <div className="player-card self-start flex flex-row w-full items-center">
+      <div className="caro-body flex flex-col relative mr-10 h-full max-h-screen justify-between">
+        <div className="player-card self-start flex flex-row w-full items-center flex-1">
           <CaroPlayerCard playerStats={playerStats} />
           <CaroTimer
             type={isPlayerTurn}
             seconds={isPlayerTurn ? remainingTime : turnDuration}
           />
         </div>
-        <div className="caro-table self-center my-5 bg-slate-300">
+        <div className="caro-table self-center bg-slate-300 my-4">
           <CaroTable
             board={gameObject.board}
             gameId={gameObject.id}
@@ -121,7 +124,7 @@ function CaroBattle() {
             isGameOver={gameObject?.state === "completed"}
           />
         </div>
-        <div className="opponent-card self-start flex flex-row w-full items-center">
+        <div className="opponent-card self-start flex flex-row w-full items-center flex-1">
           <CaroPlayerCard playerStats={opponentStats} />
           <CaroTimer
             type={!isPlayerTurn}
@@ -133,15 +136,23 @@ function CaroBattle() {
             isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
             result={gameObject.result}
-            socket={socket}
             gameId={gameId}
+            receiveRematch={receiveRematch}
+            setReceiveRematch={setReceiveRematch}
+            setWaitingRematch={setWaitingRematch}
+            waitingRematch={waitingRematch}
           />
         )}
       </div>
 
-      <div className="second-column bg-neutral-800 p-5 overflow-auto">
-        {/* Add your content for the second column here */}
-        <p>Some content for the second column</p>
+      <div className={`second-column h-full`}>
+        <CaroSidebar
+          gameId={gameId}
+          receiveRematch={receiveRematch}
+          setReceiveRematch={setReceiveRematch}
+          setWaitingRematch={setWaitingRematch}
+          waitingRematch={waitingRematch}
+        />
       </div>
     </div>
   );

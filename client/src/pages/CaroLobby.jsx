@@ -62,7 +62,7 @@ export default function Games() {
 
       const handleNavigateGame = (gameId) => {
         console.log("Navigate to: " + gameId);
-        navigate("/caro/game/" + gameId);
+        navigate("/caro/game/live/" + gameId);
       };
 
       socket.on("wait-match-making", handleWaitMatchMaking);

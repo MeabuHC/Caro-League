@@ -1,10 +1,13 @@
+import gameHistoryDAO from "../dao/gameHistoryDAO.js";
 import GameStatsDAO from "../dao/gameStatsDAO.js";
+import seasonDAO from "../dao/seasonDAO.js";
 
 const rows = 15;
 const columns = 20;
 class Game {
-  constructor(id, caroNamespace) {
+  constructor(id, seasonId, caroNamespace) {
     this.id = id;
+    this.seasonId = seasonId;
     this.caroNamespace = caroNamespace;
     this.players = new Map(); //UserId -> UserStats + (Socket)
     this.state = "waiting";
@@ -17,6 +20,7 @@ class Game {
     this.gameResult = null;
     this.moveHistory = [];
     this.startDate = null;
+    this.lpChanges = null;
   }
 
   initializeBoard() {
@@ -68,6 +72,8 @@ class Game {
       return;
     }
 
+    this.board[index_X][index_Y] = this.turn;
+
     this.moveHistory.push({
       playerId: userId,
       position: { x: index_X, y: index_Y },
@@ -76,14 +82,9 @@ class Game {
       remainingTime: this.remainingTime,
     });
 
-    this.board[index_X][index_Y] = this.turn;
-
     //Check win
     const [isWin, pattern] = this.isWin();
     if (isWin) {
-      // Update game status
-      this.endGame();
-
       // Update stats for winnerStats and loserStats
       const winnerStats = this.players.get(userId);
       const loserStats = [...this.players].find(([id]) => id !== userId)[1];
@@ -91,7 +92,7 @@ class Game {
         winnerStats,
         loserStats,
         "result",
-        55
+        this.lpChanges
       );
 
       this.gameResult = {
@@ -101,24 +102,18 @@ class Game {
         reason: "five in a row",
       };
 
-      // Emit move update to both players
-      this.caroNamespace
-        .to(this.id)
-        .emit("receive-game-object", this.toObject());
+      // Update game status
+      await this.endGame();
       return;
     }
     if (this.isDraw()) {
-      //Update game status
-      this.endGame();
-      clearInterval(this.turnTimer);
-
       // Update stats for both players
       const playerArray = Array.from(this.players.values());
       await GameStatsDAO.updatePlayerStats(
         playerArray[0],
         playerArray[1],
         "draw",
-        0
+        this.lpChanges
       );
 
       // Emit draw event to both players
@@ -128,12 +123,8 @@ class Game {
         reason: "out of move",
       };
 
-      // Update game status
-      this.endGame();
-      // Emit move update to both players
-      this.caroNamespace
-        .to(this.id)
-        .emit("receive-game-object", this.toObject());
+      //Update game status
+      await this.endGame();
       return;
     }
 
@@ -197,16 +188,28 @@ class Game {
     return true;
   }
 
+  //Calculate LP changes for win, lose and draw
+  calculateLpChanges() {
+    this.lpChanges = {
+      win: 55,
+      lose: -55,
+      draw: 1,
+    };
+  }
+
   // Start the game and initialize the turn timer
   startGame() {
     this.state = "in-progress";
-    this.startDate = Date.now();
+    this.startDate = new Date();
     const playerIds = Array.from(this.players.keys());
     const randomTurn = Math.random() > 0.5 ? "X" : "O";
     this.symbols.set(playerIds[0], randomTurn);
     this.symbols.set(playerIds[1], randomTurn === "X" ? "O" : "X");
     this.turn = "X";
+    this.calculateLpChanges();
     this.startTurnTimer(); // Start the turn timer
+
+    console.log("This is season id" + this.seasonId);
   }
 
   // Start or reset the turn timer
@@ -244,14 +247,12 @@ class Game {
 
       // Timer runs out
       if (this.remainingTime <= 0) {
-        this.endGame();
-
         // Update stats for winner and loser
         await GameStatsDAO.updatePlayerStats(
           winnerStats,
           loserStats,
           "result",
-          55
+          this.lpChanges
         );
 
         this.gameResult = {
@@ -261,9 +262,7 @@ class Game {
           reason: "out of time",
         };
 
-        this.caroNamespace
-          .to(this.id)
-          .emit("receive-game-object", this.toObject());
+        await this.endGame();
       }
     }, 1000);
   }
@@ -274,7 +273,7 @@ class Game {
   }
 
   //Set status to game over
-  endGame() {
+  async endGame() {
     this.state = "completed";
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
@@ -286,6 +285,29 @@ class Game {
         player.socket.gameId = undefined;
       }
     }
+
+    //Take out players stats
+    const newPlayerStats = Array.from(this.players.values()).map((player) => ({
+      userId: player.userId._id,
+      rankId: player.rankId._id,
+      currentDivision: player.currentDivision,
+      lp: player.lp,
+      symbol: this.symbols.get(player.userId._id.toString()),
+    }));
+
+    //Save game to database
+    await gameHistoryDAO.createGameHistory(
+      this.id,
+      this.seasonId,
+      this.moveHistory,
+      newPlayerStats,
+      this.gameResult,
+      this.startDate,
+      this.lpChanges
+    );
+
+    //Send update to player
+    this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
 
     console.log(this.startDate);
     console.log(this.moveHistory);
@@ -307,7 +329,7 @@ class Game {
       turn: this.turn,
       symbols: Object.fromEntries(this.symbols),
       turnDuration: this.turnDuration,
-      remainingTime: this.remainingTime, // Add remaining time to client data
+      remainingTime: this.remainingTime,
       result: this.gameResult,
     };
   }
