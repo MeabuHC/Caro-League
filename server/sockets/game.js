@@ -76,55 +76,31 @@ class Game {
 
     this.moveHistory.push({
       playerId: userId,
-      position: { x: index_X, y: index_Y },
+      position: [index_X, index_Y],
       symbol: this.turn,
       boardState: JSON.parse(JSON.stringify(this.board)),
       remainingTime: this.remainingTime,
     });
 
     //Check win
-    const [isWin, pattern] = this.isWin();
-    if (isWin) {
+    const pattern = this.isWin2([index_X, index_Y]);
+    if (pattern) {
       // Update stats for winnerStats and loserStats
       const winnerStats = this.players.get(userId);
       const loserStats = [...this.players].find(([id]) => id !== userId)[1];
-      await GameStatsDAO.updatePlayerStats(
-        winnerStats,
-        loserStats,
-        "result",
-        this.lpChanges
-      );
-
-      this.gameResult = {
-        type: "win",
-        pattern: pattern,
-        winner: winnerStats.userId.username,
-        reason: "five in a row",
-      };
 
       // Update game status
-      await this.endGame();
+      await this.endGame("win", winnerStats, loserStats, pattern);
       return;
     }
+
+    //If draw
     if (this.isDraw()) {
       // Update stats for both players
       const playerArray = Array.from(this.players.values());
-      await GameStatsDAO.updatePlayerStats(
-        playerArray[0],
-        playerArray[1],
-        "draw",
-        this.lpChanges
-      );
-
-      // Emit draw event to both players
-      this.gameResult = {
-        type: "draw",
-        pattern: null,
-        reason: "out of move",
-      };
 
       //Update game status
-      await this.endGame();
+      await this.endGame("draw", playerArray[0], playerArray[1]);
       return;
     }
 
@@ -137,45 +113,15 @@ class Game {
     return this.symbols.get(userId) === this.turn;
   }
 
-  // Check win condition for 5 in a row
-  isWin() {
-    const directions = [
-      [0, 1], // Horizontal
-      [1, 0], // Vertical
-      [1, 1], // Diagonal down-right
-      [1, -1], // Diagonal down-left
-    ];
-
-    for (let x = 0; x < rows; x++) {
-      for (let y = 0; y < columns; y++) {
-        const currentSymbol = this.board[x][y];
-        if (!currentSymbol) continue;
-
-        for (const [dx, dy] of directions) {
-          let count = 1;
-          let nx = x + dx;
-          let ny = y + dy;
-          const sequence = [[x, y]]; // Start with the current cell in the sequence
-
-          while (
-            nx >= 0 &&
-            nx < rows &&
-            ny >= 0 &&
-            ny < columns &&
-            this.board[nx][ny] === currentSymbol
-          ) {
-            sequence.push([nx, ny]);
-            count++;
-            if (count === 5) {
-              return [true, sequence]; // Return true and the full sequence
-            }
-            nx += dx;
-            ny += dy;
-          }
-        }
-      }
-    }
-    return [false, null];
+  //isWin new version
+  isWin2([x, y]) {
+    return (
+      this.checkHorizontal([x, y]) ||
+      this.checkVertical([x, y]) ||
+      this.checkDiagonalRight([x, y]) ||
+      this.checkDiagonalLeft([x, y]) ||
+      null
+    );
   }
 
   // Check draw condition
@@ -247,22 +193,13 @@ class Game {
 
       // Timer runs out
       if (this.remainingTime <= 0) {
-        // Update stats for winner and loser
-        await GameStatsDAO.updatePlayerStats(
-          winnerStats,
-          loserStats,
-          "result",
-          this.lpChanges
-        );
+        //No move or only one move was made
+        if (this.moveHistory.length <= 1) {
+          await this.endGame("abort");
+          return;
+        }
 
-        this.gameResult = {
-          type: "timeout",
-          pattern: null,
-          winner: winnerStats.userId.username,
-          reason: "out of time",
-        };
-
-        await this.endGame();
+        await this.endGame("timeout", winnerStats, loserStats);
       }
     }, 1000);
   }
@@ -273,7 +210,7 @@ class Game {
   }
 
   //Set status to game over
-  async endGame() {
+  async endGame(type, winnerStats, loserStats, pattern = null) {
     this.state = "completed";
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
@@ -286,25 +223,90 @@ class Game {
       }
     }
 
-    //Take out players stats
-    const newPlayerStats = Array.from(this.players.values()).map((player) => ({
-      userId: player.userId._id,
-      rankId: player.rankId._id,
-      currentDivision: player.currentDivision,
-      lp: player.lp,
-      symbol: this.symbols.get(player.userId._id.toString()),
-    }));
+    //Abort
+    if (type === "abort") {
+      this.gameResult = {
+        type: "abort",
+        pattern: null,
+        winner: null,
+        reason: "by no move was made",
+      };
+    }
+    //Win
+    else if (type === "win") {
+      await GameStatsDAO.updatePlayerStats(
+        winnerStats,
+        loserStats,
+        type,
+        this.lpChanges
+      );
 
-    //Save game to database
-    await gameHistoryDAO.createGameHistory(
-      this.id,
-      this.seasonId,
-      this.moveHistory,
-      newPlayerStats,
-      this.gameResult,
-      this.startDate,
-      this.lpChanges
-    );
+      this.gameResult = {
+        type: "win",
+        pattern: pattern,
+        winner: winnerStats.userId.username,
+        reason: "by five in a row",
+      };
+    }
+    //Draw
+    else if (type === "draw") {
+      await GameStatsDAO.updatePlayerStats(
+        winnerStats,
+        loserStats,
+        type,
+        this.lpChanges
+      );
+
+      // Emit draw event to both players
+      this.gameResult = {
+        type: "draw",
+        pattern: null,
+        winner: null,
+        reason: "by out of move",
+      };
+    }
+    //Timeout
+    else if (type === "timeout") {
+      // Update stats for winner and loser
+      await GameStatsDAO.updatePlayerStats(
+        winnerStats,
+        loserStats,
+        "win",
+        this.lpChanges
+      );
+
+      this.gameResult = {
+        type: "timeout",
+        pattern: null,
+        winner: winnerStats.userId.username,
+        reason: "by out of time",
+      };
+    }
+
+    if (type != "abort") {
+      //Take out players stats
+      const newPlayerStats = Array.from(this.players.values()).map(
+        (player) => ({
+          userId: player.userId._id,
+          rankId: player.rankId._id,
+          currentDivision: player.currentDivision,
+          lp: player.lp,
+          symbol: this.symbols.get(player.userId._id.toString()),
+        })
+      );
+
+      //Save game to database
+      await gameHistoryDAO.createGameHistory(
+        this.id,
+        this.seasonId,
+        this.moveHistory,
+        newPlayerStats,
+        this.gameResult,
+        this.startDate,
+        this.lpChanges,
+        this.turnDuration
+      );
+    }
 
     //Send update to player
     this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
@@ -332,6 +334,146 @@ class Game {
       remainingTime: this.remainingTime,
       result: this.gameResult,
     };
+  }
+
+  checkHorizontal([x, y]) {
+    let copyY = y; //Copy column index
+    const sequence = [[x, y]]; //Start index
+
+    const currentSymbol = this.board[x][y];
+    let count = 1; //Counting the starting one
+    while (copyY + 1 < columns) {
+      if (currentSymbol != this.board[x][copyY + 1]) break;
+      sequence.push([x, copyY + 1]);
+      count++;
+      copyY++;
+    }
+
+    copyY = y; //Reset column index
+
+    while (copyY - 1 >= 0) {
+      if (currentSymbol != this.board[x][copyY - 1]) break;
+      sequence.push([x, copyY - 1]);
+      count++;
+      copyY--;
+    }
+
+    if (count < 5) {
+      return null;
+    } else return sequence;
+  }
+
+  checkVertical([x, y]) {
+    let copyX = x; // Copy row index
+    const sequence = [[x, y]]; // Start index
+
+    const currentSymbol = this.board[x][y];
+    let count = 1; // Counting the starting one
+
+    // Check downwards
+    while (copyX + 1 < rows) {
+      if (currentSymbol !== this.board[copyX + 1][y]) break;
+      copyX++;
+      sequence.push([copyX, y]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    copyX = x; // Reset row index
+
+    // Check upwards
+    while (copyX - 1 >= 0) {
+      if (currentSymbol !== this.board[copyX - 1][y]) break;
+      copyX--;
+      sequence.push([copyX, y]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    // If less than 5 in a row, return false
+    return count >= 5 ? sequence : null;
+  }
+
+  checkDiagonalRight([x, y]) {
+    let copyX = x;
+    let copyY = y;
+    const sequence = [[x, y]]; // Start index
+
+    const currentSymbol = this.board[x][y];
+    let count = 1; // Counting the starting one
+
+    // Check down-right
+    while (copyX + 1 < rows && copyY + 1 < columns) {
+      if (currentSymbol !== this.board[copyX + 1][copyY + 1]) break;
+      copyX++;
+      copyY++;
+      sequence.push([copyX, copyY]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    copyX = x; // Reset row index
+    copyY = y; // Reset column index
+
+    // Check up-left
+    while (copyX - 1 >= 0 && copyY - 1 >= 0) {
+      if (currentSymbol !== this.board[copyX - 1][copyY - 1]) break;
+      copyX--;
+      copyY--;
+      sequence.push([copyX, copyY]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    // If less than 5 in a row, return false
+    return count >= 5 ? sequence : null;
+  }
+
+  checkDiagonalLeft([x, y]) {
+    let copyX = x;
+    let copyY = y;
+    const sequence = [[x, y]]; // Start index
+
+    const currentSymbol = this.board[x][y];
+    let count = 1; // Counting the starting one
+
+    // Check down-left
+    while (copyX + 1 < rows && copyY - 1 >= 0) {
+      if (currentSymbol !== this.board[copyX + 1][copyY - 1]) break;
+      copyX++;
+      copyY--;
+      sequence.push([copyX, copyY]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    copyX = x; // Reset row index
+    copyY = y; // Reset column index
+
+    // Check up-right
+    while (copyX - 1 >= 0 && copyY + 1 < columns) {
+      if (currentSymbol !== this.board[copyX - 1][copyY + 1]) break;
+      copyX--;
+      copyY++;
+      sequence.push([copyX, copyY]);
+      count++;
+      if (count === 5) {
+        return sequence; // Return the sequence if 5 in a row is found
+      }
+    }
+
+    // If less than 5 in a row, return false
+    return count >= 5 ? sequence : null;
   }
 }
 

@@ -30,7 +30,7 @@ class GameStatsDAO {
     winnerStats.totalGames += 1;
     loserStats.totalGames += 1;
 
-    if (status === "result") {
+    if (status === "win") {
       winnerStats.wins += 1;
       winnerStats.lp += lpChanges.win;
 

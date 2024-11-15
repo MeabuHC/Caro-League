@@ -3,7 +3,7 @@ import CaroSquare from "./CaroSquare";
 
 function CaroTableSpectator({ moveHistory, pattern }) {
   const board = moveHistory.boardState;
-  const { x: moveX, y: moveY } = moveHistory.position;
+  const [moveX, moveY] = moveHistory.position;
   // Check if a cell is part of the winning pattern
   const isInWinningPattern = (i, y) => {
     return (
@@ -23,10 +23,10 @@ function CaroTableSpectator({ moveHistory, pattern }) {
         <td
           key={`${i}-${y}`}
           className={`border border-black border-collapse ${
-            isWinningCell ? "bg-green-100" : ""
-          } ${isNewMove ? "bg-amber-200" : ""}`}
+            isNewMove ? "bg-amber-200" : isWinningCell ? "bg-green-100" : ""
+          }`}
         >
-          <CaroSquare value={board[i][y]} />
+          <CaroSquare value={board[i][y]} isClickable={false} />
         </td>
       );
     }

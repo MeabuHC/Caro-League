@@ -32,8 +32,8 @@ const moveSchema = new Schema({
     required: true,
   },
   position: {
-    x: { type: Number, required: true },
-    y: { type: Number, required: true },
+    type: [Number, Number], // Array with two numbers for x and y
+    required: true,
   },
   symbol: { type: String, required: true },
   boardState: { type: [[String]], required: true },
@@ -63,6 +63,10 @@ const gameHistorySchema = new Schema({
     win: { type: Number, required: true },
     lose: { type: Number, required: true },
     draw: { type: Number, required: true },
+  },
+  turnDuration: {
+    type: Number,
+    required: true,
   },
   createdAt: { type: Date, required: true },
 });

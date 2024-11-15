@@ -9,6 +9,7 @@ function CaroResultModal({
   isModalOpen,
   setIsModalOpen,
   result,
+  isSpectator = false,
   gameId,
   waitingRematch,
   receiveRematch,
@@ -16,33 +17,42 @@ function CaroResultModal({
   setReceiveRematch,
 }) {
   const { socket } = useCaroSocket();
-
-  console.log(receiveRematch);
   const navigate = useNavigate();
+
   useEffect(() => {
-    //On receiving rematch request
-    socket.on("receive-rematch-request", () => {
-      console.log("Receive rematch request!");
-      setReceiveRematch(true);
-    });
+    if (!isSpectator) {
+      const handleReceiveRematch = () => {
+        console.log("Receive rematch request!");
+        setReceiveRematch(true);
+      };
 
-    //Requester cancel the rematch request
-    socket.on("cancel-rematch-request", () => {
-      console.log("Cancel rematch request!");
-      setReceiveRematch(false);
-    });
+      const handleCancelRematch = () => {
+        console.log("Cancel rematch request!");
+        setReceiveRematch(false);
+      };
 
-    //Accept
-    socket.on("new-game", (newGameId) => {
-      console.log("receive new-game" + newGameId);
-      navigate("/caro/game/live/" + newGameId);
-    });
+      const handleNewGame = (newGameId) => {
+        console.log("receive new-game" + newGameId);
+        navigate("/caro/game/live/" + newGameId);
+      };
 
-    //Opponent decline rematch request
-    socket.on("decline-rematch-request", () => {
-      console.log("Decline-rematch-request run!");
-      setWaitingRematch(false);
-    });
+      const handleDeclineRematch = () => {
+        console.log("Decline-rematch-request run!");
+        setWaitingRematch(false);
+      };
+
+      socket.on("receive-rematch-request", handleReceiveRematch);
+      socket.on("cancel-rematch-request", handleCancelRematch);
+      socket.on("new-game", handleNewGame);
+      socket.on("decline-rematch-request", handleDeclineRematch);
+
+      return () => {
+        socket.off("receive-rematch-request", handleReceiveRematch);
+        socket.off("cancel-rematch-request", handleCancelRematch);
+        socket.off("new-game", handleNewGame);
+        socket.off("decline-rematch-request", handleDeclineRematch);
+      };
+    }
   }, []);
 
   const handleCloseModal = () => {
@@ -54,10 +64,14 @@ function CaroResultModal({
       title={
         <div className={styles.modalHeader}>
           <div className="text-xl font-bold text-center font-roboto text-white">
-            {result.type === "draw" ? "Draw" : result.winner + " Won"}
+            {result.type === "draw"
+              ? "Draw"
+              : result.type === "abort"
+              ? "Game Abort"
+              : result.winner + " Won"}
           </div>
           <div className="text-center font-roboto text-base">
-            by {result.reason}
+            {result.reason}
           </div>
         </div>
       }
@@ -73,13 +87,17 @@ function CaroResultModal({
       wrapClassName={styles.modal_wrapper}
     >
       <div className="px-4 py-10">
-        <CaroResultButtons
-          receiveRematch={receiveRematch}
-          setReceiveRematch={setReceiveRematch}
-          waitingRematch={waitingRematch}
-          setWaitingRematch={setWaitingRematch}
-          gameId={gameId}
-        />
+        {isSpectator ? (
+          <CaroResultButtons isSpectator={true} />
+        ) : (
+          <CaroResultButtons
+            receiveRematch={receiveRematch}
+            setReceiveRematch={setReceiveRematch}
+            waitingRematch={waitingRematch}
+            setWaitingRematch={setWaitingRematch}
+            gameId={gameId}
+          />
+        )}
       </div>
     </Modal>
   );

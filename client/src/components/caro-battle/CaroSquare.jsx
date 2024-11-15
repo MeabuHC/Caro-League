@@ -6,6 +6,7 @@ function CaroSquare({
   onSquareMouseOver = () => {},
   onSquareMouseLeave = () => {},
   isHovered = false,
+  isClickable = true,
 }) {
   let valueColorCSS;
   if (value === "X") {
@@ -25,7 +26,9 @@ function CaroSquare({
     >
       <button
         tabIndex={-1}
-        className={`flex items-center justify-center w-8 h-8  text-2xl font-bold font-caroFont select-none ${valueColorCSS}`}
+        className={`flex items-center justify-center w-8 h-8  text-2xl font-bold font-caroFont select-none ${valueColorCSS} ${
+          !isClickable && "cursor-default"
+        } `}
       >
         {value}
       </button>

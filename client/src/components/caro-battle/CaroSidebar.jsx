@@ -21,15 +21,17 @@ function CaroSidebar({
       className={`overflow-auto h-full w-[450px] ${styles.caro_sidebar} flex flex-col`}
     >
       <div className={`${styles.move_history} flex-1`}></div>
-
-      <CaroResultButtons
-        receiveRematch={receiveRematch}
-        setReceiveRematch={setReceiveRematch}
-        waitingRematch={waitingRematch}
-        setWaitingRematch={setWaitingRematch}
-        gameId={gameId}
-        icon={true}
-      />
+      <div className={`${styles.game_review_content}`}>
+        <CaroResultButtons
+          receiveRematch={receiveRematch}
+          setReceiveRematch={setReceiveRematch}
+          waitingRematch={waitingRematch}
+          setWaitingRematch={setWaitingRematch}
+          gameId={gameId}
+          icon={true}
+        />
+      </div>
+      <div className={`${styles.game_chat}`}></div>
     </div>
   );
 }
