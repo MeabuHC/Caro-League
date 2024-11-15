@@ -3,35 +3,6 @@
   font-family: "Roboto";
 }
 
-.history_board {
-  background-color: #262522;
-  color: #c3c2c1;
-}
-
-.history_board_header {
-  background-color: #262522;
-  border-block: 2px solid #31302d;
-}
-
-.history_board_content_1 {
-  background-color: #262522;
-}
-
-.history_board_body button {
-  border-bottom: 0.2rem solid transparent;
-  transition: 0.2s all ease;
-}
-.select_move {
-  background-color: #484745;
-  padding: 0.1rem 0.5rem 0.2rem;
-  border-radius: 0.15rem;
-  border-bottom: 0.2rem solid #5b5a58 !important;
-}
-
-.history_board_content_2 {
-  background-color: #2a2926;
-}
-
 .show_result_buttons {
   top: 50%;
   transform: translateY(-50%);

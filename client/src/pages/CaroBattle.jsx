@@ -152,6 +152,7 @@ function CaroBattle() {
           setReceiveRematch={setReceiveRematch}
           setWaitingRematch={setWaitingRematch}
           waitingRematch={waitingRematch}
+          moveHistory={gameObject.moveHistory}
         />
       </div>
     </div>

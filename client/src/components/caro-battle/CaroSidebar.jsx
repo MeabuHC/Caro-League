@@ -1,12 +1,6 @@
 import React from "react";
 import styles from "../../styles/components/CaroSidebar.module.css";
-import {
-  LeftOutlined,
-  RightOutlined,
-  VerticalLeftOutlined,
-  VerticalRightOutlined,
-  StarFilled,
-} from "@ant-design/icons";
+import {} from "@ant-design/icons";
 import CaroResultButtons from "./CaroResultButtons";
 
 function CaroSidebar({
@@ -15,12 +9,15 @@ function CaroSidebar({
   setWaitingRematch,
   setReceiveRematch,
   gameId,
+  moveHistory,
 }) {
   return (
     <div
       className={`overflow-auto h-full w-[450px] ${styles.caro_sidebar} flex flex-col`}
     >
-      <div className={`${styles.move_history} flex-1`}></div>
+      <div className={`${styles.move_history} flex-1`}>
+        {/* <CaroHistoryBoard /> */}
+      </div>
       <div className={`${styles.game_review_content}`}>
         <CaroResultButtons
           receiveRematch={receiveRematch}

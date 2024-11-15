@@ -333,6 +333,7 @@ class Game {
       turnDuration: this.turnDuration,
       remainingTime: this.remainingTime,
       result: this.gameResult,
+      moveHistory: this.moveHistory,
     };
   }
 
