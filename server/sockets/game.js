@@ -5,7 +5,7 @@ import seasonDAO from "../dao/seasonDAO.js";
 const rows = 15;
 const columns = 20;
 class Game {
-  constructor(id, seasonId, caroNamespace) {
+  constructor(id, seasonId, caroNamespace, gameMap) {
     this.id = id;
     this.seasonId = seasonId;
     this.caroNamespace = caroNamespace;
@@ -15,12 +15,13 @@ class Game {
     this.turn = "X";
     this.symbols = new Map(); //UserId -> Symbols
     this.turnTimer = null;
-    this.turnDuration = 20;
+    this.turnDuration = 60;
     this.remainingTime = this.turnDuration;
     this.gameResult = null;
     this.moveHistory = [];
     this.startDate = null;
-    this.lpChanges = null;
+    this.lpChanges = new Map(); //UserId -> LpChanges
+    this.gameMap = gameMap;
   }
 
   initializeBoard() {
@@ -41,8 +42,25 @@ class Game {
 
   disconnectPlayer(playerId) {
     if (this.players.has(playerId)) {
-      console.log(this.players.get(playerId).socket.id + " is removed!");
+      console.log(
+        this.players.get(playerId).socket.id + " player is disconnected!"
+      );
       this.players.get(playerId).socket = undefined;
+    }
+  }
+
+  removePlayer(playerId) {
+    if (this.players.has(playerId)) {
+      console.log(
+        this.players.get(playerId)?.socket?.id + " player left the room!"
+      );
+      this.players.delete(playerId);
+
+      //Delete itself if no one inside the room left
+      if (this.players.size === 0) {
+        console.log(this.id + "has been removed from game map!");
+        this.gameMap.removeGame(this);
+      }
     }
   }
 
@@ -136,11 +154,28 @@ class Game {
 
   //Calculate LP changes for win, lose and draw
   calculateLpChanges() {
-    this.lpChanges = {
-      win: 55,
+    const playerId = Array.from(this.players.keys());
+    playerId.forEach((value) =>
+      this.lpChanges.set(value, {
+        win: 55,
+        lose: -55,
+        draw: 1,
+      })
+    );
+
+    //Player 1 lp changes
+    this.lpChanges.set(playerId[0], {
+      win: 23,
       lose: -55,
       draw: 1,
-    };
+    });
+
+    //Player 2 lp changes
+    this.lpChanges.set(playerId[1], {
+      win: 17,
+      lose: -10,
+      draw: 1,
+    });
   }
 
   // Start the game and initialize the turn timer
@@ -154,8 +189,6 @@ class Game {
     this.turn = "X";
     this.calculateLpChanges();
     this.startTurnTimer(); // Start the turn timer
-
-    console.log("This is season id" + this.seasonId);
   }
 
   // Start or reset the turn timer
@@ -214,13 +247,6 @@ class Game {
     this.state = "completed";
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
-    }
-
-    //Clear socket game id
-    for (const player of this.players.values()) {
-      if (player.socket && player.socket.gameId) {
-        player.socket.gameId = undefined;
-      }
     }
 
     //Abort
@@ -311,8 +337,16 @@ class Game {
     //Send update to player
     this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
 
-    console.log(this.startDate);
-    console.log(this.moveHistory);
+    //Clear socket game id or player if disconnect before
+    //Keep player for rematch purpose
+    for (const player of this.players.values()) {
+      //Disconnect until the game end
+      if (!player.socket) {
+        this.removePlayer(player.userId._id.toString());
+      } else if (player.socket.gameId) {
+        player.socket.gameId = undefined;
+      }
+    }
   }
 
   // Convert to plain object for the client, including the timer, no socket
@@ -334,6 +368,7 @@ class Game {
       remainingTime: this.remainingTime,
       result: this.gameResult,
       moveHistory: this.moveHistory,
+      lpChanges: Object.fromEntries(this.lpChanges),
     };
   }
 

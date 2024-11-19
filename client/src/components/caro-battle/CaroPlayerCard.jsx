@@ -1,7 +1,7 @@
 import React from "react";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
-function CaroPlayerCard({ playerStats }) {
+function CaroPlayerCard({ playerStats, lpChange = null }) {
   return (
     <>
       <div className="img-container w-10 h-10 mr-3">
@@ -24,9 +24,19 @@ function CaroPlayerCard({ playerStats }) {
             alt="Rank Image"
             className="h-full w-7 mr-1"
           />
-          <h2 className="text-gray-400 text-sm">
+          <span className="text-white text-sm">
             {playerStats.rankId.tier} {playerStats.currentDivision}
-          </h2>
+          </span>
+
+          {lpChange && (
+            <span
+              className="ml-2"
+              style={{ color: lpChange > 0 ? "#81B64C" : "#90908F" }}
+            >
+              {lpChange > 0 && "+"}
+              {lpChange}
+            </span>
+          )}
         </div>
       </div>
     </>

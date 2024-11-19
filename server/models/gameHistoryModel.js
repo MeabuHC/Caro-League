@@ -60,9 +60,13 @@ const gameHistorySchema = new Schema({
   moveHistory: [moveSchema],
   result: resultSchema,
   lpChanges: {
-    win: { type: Number, required: true },
-    lose: { type: Number, required: true },
-    draw: { type: Number, required: true },
+    type: Map,
+    of: new mongoose.Schema({
+      win: { type: Number, required: true },
+      lose: { type: Number, required: true },
+      draw: { type: Number, required: true },
+    }),
+    default: () => new Map(),
   },
   turnDuration: {
     type: Number,

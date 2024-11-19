@@ -1,8 +1,17 @@
 import React from "react";
 import styles from "../../styles/components/CaroHistoryBoard.module.css";
 
-function CaroHistoryBoard({ moveHistory, onMoveHistoryClick, moveIndex }) {
-  //Grouped 2 history together
+function CaroHistoryBoard({
+  moveHistory,
+  moveIndex,
+  setMoveIndex,
+  isGameOver = null,
+}) {
+  const handleMoveHistoryClick = (moveIndex) => {
+    setMoveIndex(moveIndex);
+  };
+
+  // Grouped 2 history together
   const groupedMoveHistory = moveHistory.reduce((acc, moveData, index) => {
     if (index % 2 === 0) {
       if (index + 1 < moveHistory.length) {
@@ -25,7 +34,7 @@ function CaroHistoryBoard({ moveHistory, onMoveHistoryClick, moveIndex }) {
       </div>
 
       <div
-        className={`${styles.history_board_body} flex flex-col overflow-x-auto overflow-y-auto max-h-[300px] h-[300px]`}
+        className={`${styles.history_board_body} flex flex-col overflow-x-auto overflow-y-auto max-h-[150px] h-[150px]`}
       >
         {groupedMoveHistory.map((moveData, index) => (
           <div
@@ -45,7 +54,7 @@ function CaroHistoryBoard({ moveHistory, onMoveHistoryClick, moveIndex }) {
                     ? styles.select_move
                     : ""
                 }
-                onClick={() => onMoveHistoryClick(index * 2)}
+                onClick={() => handleMoveHistoryClick(index * 2)}
               >
                 {"[" + moveData[0].position.map((el) => el + 1).join(",") + "]"}
               </button>
@@ -58,7 +67,7 @@ function CaroHistoryBoard({ moveHistory, onMoveHistoryClick, moveIndex }) {
                     ? styles.select_move
                     : ""
                 }
-                onClick={() => onMoveHistoryClick(index * 2 + 1)}
+                onClick={() => handleMoveHistoryClick(index * 2 + 1)}
               >
                 {moveData[1]
                   ? "[" + moveData[1].position.join(",") + "]"

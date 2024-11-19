@@ -13,7 +13,6 @@ import Settings from "./pages/Settings";
 import { UserProvider } from "./context/UserContext";
 import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
-import CaroBattleHistory from "./pages/CaroBattleHistory";
 
 function App() {
   return (
@@ -56,7 +55,14 @@ function App() {
                 </CaroSocketProvider>
               }
             >
-              <Route index element={<CaroLobby />} />
+              <Route
+                index
+                element={
+                  <ProtectedRoute>
+                    <CaroLobby />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="game/live/:gameId" element={<CaroBattleWrapper />} />
             </Route>
           </Route>

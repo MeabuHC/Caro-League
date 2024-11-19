@@ -2,3 +2,15 @@
   background-color: #262522;
   font-family: "Roboto";
 }
+
+.show_result_buttons {
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 1;
+}
+
+.hide_result_buttons {
+  top: 100%;
+  opacity: 0;
+  pointer-events: none;
+}

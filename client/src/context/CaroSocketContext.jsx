@@ -10,6 +10,10 @@ export const CaroSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   const initializeConnection = async () => {
+    if (socket) {
+      console.log("Alrerady has connection!");
+      return;
+    }
     try {
       // Attempt to refresh the token
       await axios.post(
@@ -32,8 +36,11 @@ export const CaroSocketProvider = ({ children }) => {
 
   const disconnectSocket = () => {
     if (socket) {
+      console.log("Disconnect from context");
       socket.disconnect();
       setSocket(null);
+    } else {
+      console.log("No socket connection to disconnect!");
     }
   };
 

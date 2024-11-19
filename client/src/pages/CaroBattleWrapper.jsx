@@ -31,6 +31,7 @@ function CaroBattleWrapper() {
     fetchGameData();
   }, [gameId]);
 
+  console.log("This is isHistory: " + isHistory);
   if (isHistory === null) {
     return;
   }

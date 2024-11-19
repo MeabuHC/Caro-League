@@ -12,6 +12,7 @@ function CaroTable({
   isPlayerTurn,
   pattern,
   isGameOver,
+  newMovePosition = null,
 }) {
   const [hoveredCell, setHoveredCell] = useState(null);
   const { socket } = useCaroSocket();
@@ -58,12 +59,14 @@ function CaroTable({
         hoveredCell && hoveredCell.i === i && hoveredCell.y === y;
       const cellValue = isHovered ? playerSymbol : board[i][y];
       const isWinningCell = isInWinningPattern(i, y);
+      const isNewMove =
+        newMovePosition && i === newMovePosition[0] && y === newMovePosition[1];
 
       rowCells.push(
         <td
           key={`${i}-${y}`}
           className={`border border-black border-collapse ${
-            isWinningCell ? "bg-green-100" : ""
+            isNewMove ? "bg-amber-200" : isWinningCell ? "bg-green-100" : ""
           }`}
         >
           {isPlayerTurn && !pattern && !isGameOver ? (

@@ -22,7 +22,6 @@ export function SettingAvatar() {
   const handleImageChange = (event) => {
     const selectedFile = event.target.files[0];
 
-    console.log(selectedFile);
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       setError(null);
       setFile(selectedFile); // Store the file
@@ -57,7 +56,6 @@ export function SettingAvatar() {
         "post",
         formData
       );
-      console.log(response);
       setIsChanged(false);
       setIsValid(false);
 

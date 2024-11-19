@@ -8,7 +8,6 @@ import { updateSchema } from "../validations/userValidation.js";
 import cloudinary from "cloudinary";
 
 export const getAllUsers = catchAsync(async (req, res) => {
-  console.log(req.query);
   const users = await userDAO.getAllUsers(req.query);
   res.status(200).json({
     message: "success",

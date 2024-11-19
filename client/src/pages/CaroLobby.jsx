@@ -15,6 +15,7 @@ export default function Games() {
 
   /* Socket configuration */
   useEffect(() => {
+    console.log("Caro Lobby first run!");
     setPlayerStats({
       _id: "6728dd5a8ccd5cfb65f6dcfd",
       userId: {
@@ -55,6 +56,7 @@ export default function Games() {
 
     if (socket) {
       console.log("Socket is available");
+      console.log(socket);
       const handleWaitMatchMaking = (gameId) => {
         console.log("You are in game: " + gameId);
         setGameId(gameId);
@@ -62,17 +64,21 @@ export default function Games() {
 
       const handleNavigateGame = (gameId) => {
         console.log("Navigate to: " + gameId);
+        console.log(socket);
+        console.log(socket.id + " from navigate game!");
         navigate("/caro/game/live/" + gameId);
       };
 
       socket.on("wait-match-making", handleWaitMatchMaking);
       socket.on("navigate-game", handleNavigateGame);
+      socket.on("already-in-game", handleNavigateGame);
 
       socket.emit("get-player-stats");
 
       return () => {
         socket.off("wait-match-making", handleWaitMatchMaking);
         socket.off("navigate-game", handleNavigateGame);
+        socket.off("already-in-game", handleNavigateGame);
       };
     }
   }, [socket]);
