@@ -19,7 +19,7 @@ export const getAllUsers = catchAsync(async (req, res) => {
 });
 
 export const getUser = catchAsync(async (req, res, next) => {
-  const user = await userDAO.getUserById(req.query, req.params.id);
+  const user = await userDAO.getUserById(req.params.id, req.query);
   if (!user) {
     return next(new AppError("No user found with that ID", 404));
   }

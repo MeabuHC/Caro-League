@@ -20,6 +20,7 @@ function CaroSidebarSpectator({
         moveHistory={moveHistory}
         moveIndex={moveIndex}
         setMoveIndex={setMoveIndex}
+        isSpectator={true}
       />
       <div
         className={`relative h-[120px] w-full`}

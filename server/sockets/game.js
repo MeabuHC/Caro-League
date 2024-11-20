@@ -1,6 +1,7 @@
 import gameHistoryDAO from "../dao/gameHistoryDAO.js";
 import GameStatsDAO from "../dao/gameStatsDAO.js";
 import seasonDAO from "../dao/seasonDAO.js";
+import Message from "./message.js";
 
 const rows = 15;
 const columns = 20;
@@ -22,10 +23,15 @@ class Game {
     this.startDate = null;
     this.lpChanges = new Map(); //UserId -> LpChanges
     this.gameMap = gameMap;
+    this.messages = new Array();
   }
 
   initializeBoard() {
     return Array.from({ length: rows }, () => Array(columns).fill(null));
+  }
+
+  addMessage(messageObj) {
+    this.messages.push(messageObj);
   }
 
   addPlayer(socket, player) {
@@ -58,7 +64,7 @@ class Game {
 
       //Delete itself if no one inside the room left
       if (this.players.size === 0) {
-        console.log(this.id + "has been removed from game map!");
+        console.log(this.id + " has been removed from game map!");
         this.gameMap.removeGame(this);
       }
     }
@@ -188,6 +194,7 @@ class Game {
     this.symbols.set(playerIds[1], randomTurn === "X" ? "O" : "X");
     this.turn = "X";
     this.calculateLpChanges();
+    this.addMessage(new Message("start-game"));
     this.startTurnTimer(); // Start the turn timer
   }
 
@@ -245,6 +252,7 @@ class Game {
   //Set status to game over
   async endGame(type, winnerStats, loserStats, pattern = null) {
     this.state = "completed";
+    this.addMessage(new Message("end-game"));
     if (this.turnTimer) {
       clearInterval(this.turnTimer);
     }
@@ -369,6 +377,7 @@ class Game {
       result: this.gameResult,
       moveHistory: this.moveHistory,
       lpChanges: Object.fromEntries(this.lpChanges),
+      messages: this.messages,
     };
   }
 

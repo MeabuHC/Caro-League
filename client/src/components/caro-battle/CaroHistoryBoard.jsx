@@ -5,7 +5,7 @@ function CaroHistoryBoard({
   moveHistory,
   moveIndex,
   setMoveIndex,
-  isGameOver = null,
+  isSpectator = false,
 }) {
   const handleMoveHistoryClick = (moveIndex) => {
     setMoveIndex(moveIndex);
@@ -34,7 +34,11 @@ function CaroHistoryBoard({
       </div>
 
       <div
-        className={`${styles.history_board_body} flex flex-col overflow-x-auto overflow-y-auto max-h-[150px] h-[150px]`}
+        className={`${
+          styles.history_board_body
+        } flex flex-col overflow-x-auto overflow-y-auto ${
+          !isSpectator ? `max-h-[150px] h-[150px]` : `max-h-[375px] h-[375px]`
+        }`}
       >
         {groupedMoveHistory.map((moveData, index) => (
           <div

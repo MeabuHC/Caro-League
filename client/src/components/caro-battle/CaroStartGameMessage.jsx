@@ -11,25 +11,28 @@ function CaroStartGameMessage({ gameObject }) {
     tier: element.rankId.tier,
   }));
 
-  console.log(playerArray);
   return (
-    <div className="game-start-message mt-3">
+    <div className="game-start-message my-2">
       <strong>NEW GAME</strong>
       <br />
       <a
         href={`/member/${playerArray[0].username}`}
-        className="hover:text-[#DFDEDE]"
+        className="hover:text-[#DFDEDE] font-bold"
         target="_blank"
       >
         {`${playerArray[0].username} `}
       </a>
       {`(${playerArray[0].tier} ${playerArray[0].currentDivision})`} vs.
-      <a href={`/member/${playerArray[1].username}`} target="_blank">
+      <a
+        href={`/member/${playerArray[1].username}`}
+        target="_blank"
+        className="hover:text-[#DFDEDE] font-bold"
+      >
         {" "}
         {playerArray[1].username}{" "}
       </a>
-      {`(${playerArray[1].tier} ${playerArray[1].currentDivision})`} (
-      {gameObject?.turnDuration} seconds)
+      {`(${playerArray[1].tier} ${playerArray[1].currentDivision})`}
+      <br />({gameObject?.turnDuration} seconds)
       <br />
       {`win +${lpChanges.win} / draw ${
         lpChanges.draw >= 0 ? "+" + lpChanges.draw : lpChanges.draw

@@ -18,7 +18,7 @@ class UserDAO {
     return await features.sqlQuery;
   }
 
-  async getUserById(queryObj, id, withPassword = false) {
+  async getUserById(id, queryObj = {}, withPassword = false) {
     const user = await User.findById(id);
 
     if (!user || user.role === "admin") {

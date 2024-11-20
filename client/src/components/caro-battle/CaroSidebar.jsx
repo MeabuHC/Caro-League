@@ -34,7 +34,6 @@ function CaroSidebar({
           moveHistory={moveHistory}
           moveIndex={moveIndex}
           setMoveIndex={setMoveIndex}
-          isGameOver={isGameOver}
         />
       </div>
 

@@ -5,8 +5,10 @@ import {
 } from "../utils/authUtils.js";
 import GameStatsDAO from "../dao/gameStatsDAO.js";
 import Game from "./game.js";
+import Message from "./message.js";
 import { v4 as uuidv4 } from "uuid";
 import seasonDAO from "../dao/seasonDAO.js";
+import userDAO from "../dao/userDAO.js";
 
 // Saving game
 let gameMap = new GameMap();
@@ -244,6 +246,7 @@ const caroHandlers = async (socket, caroNamespace) => {
     // }
     const decoded = await getTokenPayload(token);
     const userId = decoded.id;
+    const user = await userDAO.getUserById(userId);
 
     // Handle request player stats
     socket.on("get-player-stats", async () => {
@@ -273,6 +276,17 @@ const caroHandlers = async (socket, caroNamespace) => {
     // Sending player move to the other player
     socket.on("makeMove", async (gameId, index) => {
       await Caro.updateGameBoard(gameId, userId, index);
+    });
+
+    socket.on("send-message", (gameId, message) => {
+      const gameObj = gameMap.games.get(gameId);
+      if (message && message.trim().length != 0 && gameObj) {
+        const newMessage = new Message("game-message", user.username, message);
+        gameObj.addMessage(newMessage);
+        caroNamespace
+          .to(gameObj.id)
+          .emit("receive-game-object", gameObj.toObject());
+      }
     });
 
     // Handle send rematch request

@@ -219,7 +219,7 @@ export const restrictTo = (...roles) => {
 
 export const changePassword = catchAsync(async (req, res, next) => {
   validateInput(req.body, changePasswordSchema);
-  const user = await userDAO.getUserById(req.query, req.user.id, true);
+  const user = await userDAO.getUserById(req.user.id, req.query, true);
   if (!user) {
     return next(new AppError("No user found with that ID", 404));
   }
