@@ -90,6 +90,7 @@ function CaroBattleHistory({ gameData }) {
           setMoveIndex={setMoveIndex}
           moveHistory={gameData.moveHistory}
           isModalOpen={isModalOpen}
+          mode={gameData.mode}
         />
       </div>
     </div>

@@ -4,6 +4,8 @@ import CaroResultButtons from "./CaroResultButtons";
 import CaroSidebarButtons from "./CaroSidebarButtons";
 import CaroHistoryBoard from "./CaroHistoryBoard";
 import CaroChat from "./CaroChat";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
 
 function CaroSidebar({
   waitingRematch,
@@ -25,7 +27,22 @@ function CaroSidebar({
       style={{ borderRadius: "0 0 0.3rem 0.3rem" }}
     >
       {/* Header */}
-      <div className="flex-1">{/* Your header content */}</div>
+      <div className="game-mode flex-1 flex flex-row items-center px-[15px] text-[#C3C2C1]">
+        <strong>{gameObject.mode === 0 ? `Standard Mode` : `Open Mode`}</strong>
+        <Tooltip
+          title={
+            gameObject.mode === 0
+              ? "Traditional Caro/Gomoku modes where exactly 5 in a row wins, but it must not be blocked on both sides."
+              : "A mode where 5 or more stones in a row wins, regardless of being blocked on one or both sides."
+          }
+          className="hover: cursor-pointer"
+        >
+          <InfoCircleOutlined
+            className="ml-auto text-lg"
+            style={{ fontSize: "20px", verticalAlign: "middle" }}
+          />
+        </Tooltip>
+      </div>
 
       {/* Content Section */}
       <div className="overflow-y-auto">

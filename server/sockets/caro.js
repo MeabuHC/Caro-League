@@ -21,9 +21,9 @@ const Caro = {
   },
 
   // Final function for finding a match
-  findMatchMaking: async (socket, caroNamespace, playerStats) => {
+  findMatchMaking: async (socket, caroNamespace, playerStats, mode) => {
     // Check if the user is already in a game
-    const currentGame = gameMap.getGameByUserId(
+    const currentGame = gameMap.getInProgressGameByUserId(
       playerStats.userId._id.toString()
     );
     if (currentGame) {
@@ -34,7 +34,7 @@ const Caro = {
     let gameId; // Variable to store the game
 
     // Find game based on logic
-    gameId = await findGameId(caroNamespace);
+    gameId = await findGameId(caroNamespace, mode);
 
     // Join the determined game and update game map
     let game = gameMap.games.get(gameId);
@@ -42,7 +42,7 @@ const Caro = {
       const seasonId = (
         await seasonDAO.getCurrentActiveSeason()
       )._id.toString();
-      game = new Game(gameId, seasonId, caroNamespace, gameMap);
+      game = new Game(gameId, seasonId, caroNamespace, gameMap, mode);
       gameMap.addGame(game);
     }
 
@@ -74,23 +74,14 @@ const Caro = {
   },
 
   //Send game object to requester
-  sendInitialGame: (socket, gameId, userId) => {
-    console.log("This runs again! " + socket.id);
+  reconnectGame: (socket, gameId, userId) => {
+    console.log("Send initial game! " + socket.id);
     const gameObj = gameMap.games.get(gameId);
-    if (gameObj) {
-      const player = gameObj.players.get(userId);
-      //Reconnect
-      console.log("Current socket in room: ");
-      console.log(player?.socket?.id);
-      console.log("New socket id ");
-      console.log(socket.id);
-      if (player && !player.socket && gameObj.state === "in-progress") {
-        socket.gameId = gameId;
-        player.socket = socket;
-        socket.join(gameId);
-      }
-      socket.emit("receive-game-object", gameObj.toObject());
-    } else {
+    if (gameObj && gameObj.state === "in-progress") {
+      gameObj.reconnectGame(socket, userId);
+    }
+    //Game not existed or game already completed
+    else {
       socket.emit("receive-game-object", null);
     }
   },
@@ -102,23 +93,18 @@ const Caro = {
   },
 
   handleDisconnect: (socket, caroNamespace, userId) => {
-    const previousGame = gameMap.getGameByUserId(userId);
-    //If having a game
+    //If having a game or left room
     if (socket.gameId) {
       console.log(`${socket.id} disconnected from game ${socket.gameId}`);
       const currentGame = gameMap.games.get(socket.gameId);
-      //In progress
-      if (currentGame.state === "in-progress") {
+      currentGame.disconnectPlayer(userId);
+    } else {
+      const currentGame = gameMap.getCompletedGameByUserId(userId);
+      if (currentGame) {
         currentGame.disconnectPlayer(userId);
+      } else {
+        console.log(`${socket.id} disconnected with no active game.`);
       }
-    }
-    //Done previous game but still in room
-    else if (previousGame) {
-      previousGame.removePlayer(userId);
-    }
-    //Nothing
-    else {
-      console.log(`${socket.id} disconnected with no active game.`);
     }
   },
 
@@ -154,7 +140,14 @@ const Caro = {
       const seasonId = (
         await seasonDAO.getCurrentActiveSeason()
       )._id.toString();
-      const newGame = new Game(newGameId, seasonId, caroNamespace, gameMap);
+      const newGame = new Game(
+        newGameId,
+        seasonId,
+        caroNamespace,
+        gameMap,
+        oldGame.mode,
+        true
+      );
       // Move all players to new game
       caroNamespace.in(oldGame.id).socketsJoin(newGameId);
       caroNamespace.in(newGameId).socketsLeave(oldGame.id);
@@ -167,9 +160,7 @@ const Caro = {
       for (const [playerId, playerStats] of oldGame.players.entries()) {
         //Refetch
         const newStats = await GameStatsDAO.getGameStatsFromUserId(playerId);
-        newStats.socket = playerStats.socket;
-
-        newGame.addPlayer(newStats.socket, newStats);
+        newGame.addPlayer(null, newStats);
       }
 
       // Notify both players in the game of the new game ID
@@ -199,10 +190,14 @@ function isReadyToStartGame(gameName) {
 }
 
 // Find a valid gameId
-async function findGameId(caroNamespace) {
+async function findGameId(caroNamespace, mode) {
   // Iterate through existing games to find a game with one player
   for (const [gameId, gameObj] of gameMap.games) {
-    if (gameObj.players.size === 1 && gameObj.state === "waiting") {
+    if (
+      gameObj.players.size === 1 &&
+      gameObj.state === "waiting" &&
+      gameObj.mode === mode
+    ) {
       return gameId; // Found a game with 1 person and game not started
     }
   }
@@ -258,9 +253,9 @@ const caroHandlers = async (socket, caroNamespace) => {
     });
 
     // Handle finding a match
-    socket.on("find-match-making", async () => {
+    socket.on("find-match-making", async (mode) => {
       let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
-      Caro.findMatchMaking(socket, caroNamespace, playerStats);
+      Caro.findMatchMaking(socket, caroNamespace, playerStats, mode);
     });
 
     //Handle cancel match-making
@@ -269,8 +264,8 @@ const caroHandlers = async (socket, caroNamespace) => {
     });
 
     //Handle sending game object
-    socket.on("get-initial-game", (gameId) => {
-      Caro.sendInitialGame(socket, gameId, userId);
+    socket.on("reconnect-game", (gameId) => {
+      Caro.reconnectGame(socket, gameId, userId);
     });
 
     // Sending player move to the other player

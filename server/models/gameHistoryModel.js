@@ -72,6 +72,10 @@ const gameHistorySchema = new Schema({
     type: Number,
     required: true,
   },
+  mode: {
+    type: Number,
+    required: true,
+  },
   createdAt: { type: Date, required: true },
 });
 

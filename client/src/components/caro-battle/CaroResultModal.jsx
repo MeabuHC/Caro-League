@@ -15,6 +15,7 @@ function CaroResultModal({
   receiveRematch,
   setWaitingRematch,
   setReceiveRematch,
+  isOpponentLeft = false,
 }) {
   const { socket } = useCaroSocket();
   const navigate = useNavigate();
@@ -96,6 +97,7 @@ function CaroResultModal({
             waitingRematch={waitingRematch}
             setWaitingRematch={setWaitingRematch}
             gameId={gameId}
+            isOpponentLeft={isOpponentLeft}
           />
         )}
       </div>

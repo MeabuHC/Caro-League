@@ -11,6 +11,7 @@ import { useUserContext } from "../context/UserContext";
 import styles from "../styles/pages/CaroBattle.module.css";
 import CaroSidebar from "../components/caro-battle/CaroSidebar";
 import CaroTableSpectator from "../components/caro-battle/CaroTableSpectator";
+import delay from "../utils/delay";
 
 function CaroBattle() {
   const { gameId } = useParams(); // Take gameId from param
@@ -22,45 +23,59 @@ function CaroBattle() {
   const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
   const [waitingRematch, setWaitingRematch] = useState(false);
   const [receiveRematch, setReceiveRematch] = useState(false);
+  const [isOpponentLeft, setIsOpponentLeft] = useState(false);
   const [moveIndex, setMoveIndex] = useState(null);
 
   useEffect(() => {
-    //Re-connect
-    if (!socket) {
-      initializeConnection();
-      return;
-    }
+    const fetchGameData = async () => {
+      if (!socket) {
+        initializeConnection();
+        return;
+      }
 
-    // Emit request for initial game data when the component is mounted
-    if (gameId && socket) {
-      console.log(socket.id + " currently!");
-      console.log(socket);
-      socket.emit("get-initial-game", gameId);
-    }
+      if (gameId && socket) {
+        await delay(100); // Delay for connection
+        console.log(socket.id + " currently!");
+        console.log(socket);
+        console.log("Reconnect game request!");
+        socket.emit("reconnect-game", gameId);
+      }
 
-    const handleReceiveGameObject = (gameObj) => {
-      console.log("Receive game object!");
-      console.log(gameObj);
-      if (!gameObj) navigate("/caro"); // If no game object, redirect
-      setGameObject((prevGameObject) => {
-        //New move was made
-        if (
-          prevGameObject &&
-          prevGameObject.moveHistory.length != gameObj.moveHistory.length
-        ) {
-          setMoveIndex(gameObj.moveHistory.length - 1);
-        }
-        //First time receving
-        else if (!prevGameObject && gameObj.moveHistory.length > 0) {
-          setMoveIndex(gameObj.moveHistory.length - 1);
-        }
-        return gameObj;
-      });
+      const handleReceiveGameObject = (gameObj) => {
+        console.log("Receive game object!");
+        console.log(gameObj);
+        if (!gameObj) navigate("/caro"); // If no game object, redirect
+        setGameObject((prevGameObject) => {
+          // New move was made
+          if (
+            prevGameObject &&
+            prevGameObject.moveHistory.length !== gameObj.moveHistory.length
+          ) {
+            setMoveIndex(gameObj.moveHistory.length - 1);
+          }
+          // First time receiving
+          else if (!prevGameObject && gameObj.moveHistory.length > 0) {
+            setMoveIndex(gameObj.moveHistory.length - 1);
+          }
+          return gameObj;
+        });
+      };
+
+      //Handle opponent left room
+      const handleOpponentLeftRoom = () => {
+        console.log("Opponent lefttttt");
+        setReceiveRematch(false);
+        setWaitingRematch(false);
+        setIsOpponentLeft(true);
+      };
+
+      if (socket) {
+        socket.on("receive-game-object", handleReceiveGameObject);
+        socket.on("opponent-left-room", handleOpponentLeftRoom);
+      }
     };
 
-    if (socket) {
-      socket.on("receive-game-object", handleReceiveGameObject);
-    }
+    fetchGameData();
 
     return () => {
       if (socket) {
@@ -186,6 +201,7 @@ function CaroBattle() {
             setReceiveRematch={setReceiveRematch}
             setWaitingRematch={setWaitingRematch}
             waitingRematch={waitingRematch}
+            isOpponentLeft={isOpponentLeft}
           />
         )}
       </div>

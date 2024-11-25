@@ -10,7 +10,8 @@ class GameHistoryDAO {
     result,
     createdAt,
     lpChanges,
-    turnDuration
+    turnDuration,
+    mode
   ) {
     try {
       // Create a new GameHistory instance
@@ -23,6 +24,7 @@ class GameHistoryDAO {
         createdAt,
         lpChanges,
         turnDuration,
+        mode,
       });
 
       // Save the game history document to the database

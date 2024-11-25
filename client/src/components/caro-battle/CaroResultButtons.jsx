@@ -18,6 +18,7 @@ function CaroResultButtons({
   setWaitingRematch = () => {},
   gameId = null,
   icon = false,
+  isOpponentLeft = false,
 }) {
   const { socket } = useCaroSocket();
   const navigate = useNavigate();
@@ -60,15 +61,16 @@ function CaroResultButtons({
       <button className="flex-1 max-h-[36px]" onClick={handleBackToLobby}>
         {icon && <HomeOutlined />} Back to lobby
       </button>
-      {!waitingRematch ? (
-        <button className="flex-1 max-h-[36px]" onClick={handleSendRematch}>
-          {icon && <ReloadOutlined />} Rematch
-        </button>
-      ) : (
-        <button className="flex-1 max-h-[36px]" onClick={handleCancelRematch}>
-          {icon && <CloseOutlined />} Cancel
-        </button>
-      )}
+      {!isOpponentLeft &&
+        (!waitingRematch ? (
+          <button className="flex-1 max-h-[36px]" onClick={handleSendRematch}>
+            {icon && <ReloadOutlined />} Rematch
+          </button>
+        ) : (
+          <button className="flex-1 max-h-[36px]" onClick={handleCancelRematch}>
+            {icon && <CloseOutlined />} Cancel
+          </button>
+        ))}
     </div>
   );
 

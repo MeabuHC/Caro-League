@@ -1,42 +1,56 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useUserContext } from "../../context/UserContext";
 
 function CaroStartGameMessage({ gameObject }) {
   const { user } = useUserContext();
-  const lpChanges = gameObject.lpChanges[user._id];
+  const snapshotRef = useRef(null);
 
-  const playerArray = Object.values(gameObject.players).map((element) => ({
-    username: element.userId.username,
-    currentDivision: element.currentDivision,
-    tier: element.rankId.tier,
-  }));
+  // Capture the snapshot only on the first render
+  if (!snapshotRef.current && gameObject) {
+    snapshotRef.current = {
+      lpChanges: gameObject.lpChanges[user._id],
+      players: Object.values(gameObject.players).map((element) => ({
+        username: element.userId.username,
+        currentDivision: element.currentDivision,
+        tier: element.rankId.tier,
+      })),
+      turnDuration: gameObject.turnDuration,
+    };
+  }
+
+  const snapshot = snapshotRef.current;
+
+  if (!snapshot) return null; // Handle cases where the snapshot isn’t ready
 
   return (
     <div className="game-start-message my-2">
       <strong>NEW GAME</strong>
       <br />
       <a
-        href={`/member/${playerArray[0].username}`}
+        href={`/member/${snapshot.players[0].username}`}
         className="hover:text-[#DFDEDE] font-bold"
         target="_blank"
       >
-        {`${playerArray[0].username} `}
+        {`${snapshot.players[0].username} `}
       </a>
-      {`(${playerArray[0].tier} ${playerArray[0].currentDivision})`} vs.
+      {`(${snapshot.players[0].tier} ${snapshot.players[0].currentDivision})`}{" "}
+      vs.
       <a
-        href={`/member/${playerArray[1].username}`}
+        href={`/member/${snapshot.players[1].username}`}
         target="_blank"
         className="hover:text-[#DFDEDE] font-bold"
       >
         {" "}
-        {playerArray[1].username}{" "}
+        {snapshot.players[1].username}{" "}
       </a>
-      {`(${playerArray[1].tier} ${playerArray[1].currentDivision})`}
-      <br />({gameObject?.turnDuration} seconds)
+      {`(${snapshot.players[1].tier} ${snapshot.players[1].currentDivision})`}
+      <br />({snapshot.turnDuration} seconds)
       <br />
-      {`win +${lpChanges.win} / draw ${
-        lpChanges.draw >= 0 ? "+" + lpChanges.draw : lpChanges.draw
-      } / lose ${lpChanges.lose}`}
+      {`win +${snapshot.lpChanges.win} / draw ${
+        snapshot.lpChanges.draw >= 0
+          ? "+" + snapshot.lpChanges.draw
+          : snapshot.lpChanges.draw
+      } / lose ${snapshot.lpChanges.lose}`}
     </div>
   );
 }

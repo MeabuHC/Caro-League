@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "../../styles/components/CaroHistoryBoard.module.css";
 
 function CaroHistoryBoard({
@@ -7,6 +7,15 @@ function CaroHistoryBoard({
   setMoveIndex,
   isSpectator = false,
 }) {
+  const containerRef = useRef(null);
+
+  // Scroll to the bottom whenever new moves are added
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [moveHistory]); // Trigger when moves change
+
   const handleMoveHistoryClick = (moveIndex) => {
     setMoveIndex(moveIndex);
   };
@@ -34,10 +43,11 @@ function CaroHistoryBoard({
       </div>
 
       <div
+        ref={containerRef}
         className={`${
           styles.history_board_body
         } flex flex-col overflow-x-auto overflow-y-auto ${
-          !isSpectator ? `max-h-[150px] h-[150px]` : `max-h-[375px] h-[375px]`
+          !isSpectator ? `max-h-[165px] h-[165px]` : `max-h-[375px] h-[375px]`
         }`}
       >
         {groupedMoveHistory.map((moveData, index) => (

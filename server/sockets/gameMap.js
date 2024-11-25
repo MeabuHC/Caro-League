@@ -6,10 +6,20 @@ class GameMap {
     this.games = new Map(); // Store games by ID
   }
 
-  //Check if user has joined any game and return that game
-  getGameByUserId(userId) {
+  //Check if user has joined any game that are still in-progress and return that game
+  getInProgressGameByUserId(userId) {
     for (const game of this.games.values()) {
-      if (game.players.has(userId)) {
+      if (game.players.has(userId) && game.state === "in-progress") {
+        return game;
+      }
+    }
+    return null; // User is not in any game
+  }
+
+  //Check if user still inside any completed games
+  getCompletedGameByUserId(userId) {
+    for (const game of this.games.values()) {
+      if (game.players.has(userId) && game.state === "completed") {
         return game;
       }
     }

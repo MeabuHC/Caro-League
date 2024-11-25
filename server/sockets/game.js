@@ -6,8 +6,16 @@ import Message from "./message.js";
 const rows = 15;
 const columns = 20;
 class Game {
-  constructor(id, seasonId, caroNamespace, gameMap) {
+  constructor(
+    id,
+    seasonId,
+    caroNamespace,
+    gameMap,
+    mode = 0,
+    isRematch = false
+  ) {
     this.id = id;
+    this.mode = mode; //0: basic, 1: open
     this.seasonId = seasonId;
     this.caroNamespace = caroNamespace;
     this.players = new Map(); //UserId -> UserStats + (Socket)
@@ -16,7 +24,7 @@ class Game {
     this.turn = "X";
     this.symbols = new Map(); //UserId -> Symbols
     this.turnTimer = null;
-    this.turnDuration = 60;
+    this.turnDuration = 120;
     this.remainingTime = this.turnDuration;
     this.gameResult = null;
     this.moveHistory = [];
@@ -24,6 +32,8 @@ class Game {
     this.lpChanges = new Map(); //UserId -> LpChanges
     this.gameMap = gameMap;
     this.messages = new Array();
+    this.isRematch = isRematch;
+    this.reconnectAttempt = 0; //Reconnect if rematch, if > 2 real disconnect
   }
 
   initializeBoard() {
@@ -34,39 +44,85 @@ class Game {
     this.messages.push(messageObj);
   }
 
+  reconnectGame(socket, playerId) {
+    this.reconnectAttempt += 1;
+    const player = this.players.get(playerId);
+    //Reconnect
+    if (player && !player.socket) {
+      socket.gameId = this.id;
+      player.socket = socket;
+      socket.join(this.id);
+
+      //In case rematch reconnect
+      if (!this.isRematch || this.reconnectAttempt > 2) {
+        this.addMessage(
+          new Message(
+            "notification",
+            null,
+            `${player.userId.username} has reconnected!`
+          )
+        );
+      }
+    }
+    this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
+  }
+
   addPlayer(socket, player) {
     //If this players is not inside the room
     let oldPlayer = this.players.has(player.userId._id.toString());
     if (!oldPlayer) {
-      console.log(socket.id + " joins: " + this.id);
-      socket.join(this.id);
-      socket.gameId = this.id; //Assign gameId to socket
-      player.socket = socket;
+      if (socket) {
+        console.log(socket.id + " joins: " + this.id);
+        socket.join(this.id);
+        socket.gameId = this.id; //Assign gameId to socket
+        player.socket = socket;
+      }
       this.players.set(player.userId._id.toString(), player); // Add player with socket ID as key
     }
   }
 
   disconnectPlayer(playerId) {
     if (this.players.has(playerId)) {
-      console.log(
-        this.players.get(playerId).socket.id + " player is disconnected!"
-      );
-      this.players.get(playerId).socket = undefined;
-    }
-  }
+      const player = this.players.get(playerId);
 
-  removePlayer(playerId) {
-    if (this.players.has(playerId)) {
-      console.log(
-        this.players.get(playerId)?.socket?.id + " player left the room!"
-      );
-      this.players.delete(playerId);
+      if (this.state === "in-progress") {
+        console.log(player.socket.id + " player is disconnected!");
+        this.addMessage(
+          new Message(
+            "notification",
+            null,
+            `${player.userId.username} is disconnected!`
+          )
+        );
+        player.socket = undefined;
+      } else if (this.state === "completed") {
+        console.log(player?.socket?.id + " player left the room!");
+        this.addMessage(
+          new Message(
+            "notification",
+            null,
+            `${player.userId.username} left the room!`
+          )
+        );
+        player.socket = undefined;
+        this.caroNamespace.to(this.id).emit("opponent-left-room");
+        let hasActiveSocket = false;
+        this.players.forEach((player) => {
+          if (player.socket) {
+            hasActiveSocket = true;
+          }
+        });
 
-      //Delete itself if no one inside the room left
-      if (this.players.size === 0) {
-        console.log(this.id + " has been removed from game map!");
-        this.gameMap.removeGame(this);
+        // Every player left the room
+        if (!hasActiveSocket) {
+          console.log("No players have a socket, removing the game...");
+          this.gameMap.removeGame(this);
+        }
       }
+
+      this.caroNamespace
+        .to(this.id)
+        .emit("receive-game-object", this.toObject());
     }
   }
 
@@ -338,20 +394,17 @@ class Game {
         this.gameResult,
         this.startDate,
         this.lpChanges,
-        this.turnDuration
+        this.turnDuration,
+        this.mode
       );
     }
 
     //Send update to player
     this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
 
-    //Clear socket game id or player if disconnect before
-    //Keep player for rematch purpose
+    //Clear socket game id for player
     for (const player of this.players.values()) {
-      //Disconnect until the game end
-      if (!player.socket) {
-        this.removePlayer(player.userId._id.toString());
-      } else if (player.socket.gameId) {
+      if (player?.socket?.gameId) {
         player.socket.gameId = undefined;
       }
     }
@@ -361,6 +414,7 @@ class Game {
   toObject() {
     return {
       id: this.id,
+      mode: this.mode,
       players: Object.fromEntries(
         // Remove the socket and format each player data correctly
         Array.from(this.players.entries()).map(([userId, player]) => [
@@ -384,11 +438,15 @@ class Game {
   checkHorizontal([x, y]) {
     let copyY = y; //Copy column index
     const sequence = [[x, y]]; //Start index
+    let countBlockSide = 0;
 
     const currentSymbol = this.board[x][y];
     let count = 1; //Counting the starting one
     while (copyY + 1 < columns) {
-      if (currentSymbol != this.board[x][copyY + 1]) break;
+      if (currentSymbol != this.board[x][copyY + 1]) {
+        if (this.board[x][copyY + 1] != null) countBlockSide += 1;
+        break;
+      }
       sequence.push([x, copyY + 1]);
       count++;
       copyY++;
@@ -397,70 +455,90 @@ class Game {
     copyY = y; //Reset column index
 
     while (copyY - 1 >= 0) {
-      if (currentSymbol != this.board[x][copyY - 1]) break;
+      if (currentSymbol != this.board[x][copyY - 1]) {
+        if (this.board[x][copyY - 1] != null) countBlockSide += 1;
+        break;
+      }
       sequence.push([x, copyY - 1]);
       count++;
       copyY--;
     }
 
-    if (count < 5) {
-      return null;
-    } else return sequence;
+    if (this.mode === 0) {
+      if (count != 5 || countBlockSide === 2) return null;
+      else return sequence;
+    }
+
+    if (this.mode === 1) {
+      if (count < 5) {
+        return null;
+      } else return sequence;
+    }
   }
 
   checkVertical([x, y]) {
     let copyX = x; // Copy row index
     const sequence = [[x, y]]; // Start index
+    let countBlockSide = 0; // Blocked sides counter
 
     const currentSymbol = this.board[x][y];
     let count = 1; // Counting the starting one
 
     // Check downwards
     while (copyX + 1 < rows) {
-      if (currentSymbol !== this.board[copyX + 1][y]) break;
+      if (currentSymbol !== this.board[copyX + 1][y]) {
+        if (this.board[copyX + 1][y] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX++;
       sequence.push([copyX, y]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
     copyX = x; // Reset row index
 
     // Check upwards
     while (copyX - 1 >= 0) {
-      if (currentSymbol !== this.board[copyX - 1][y]) break;
+      if (currentSymbol !== this.board[copyX - 1][y]) {
+        if (this.board[copyX - 1][y] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX--;
       sequence.push([copyX, y]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
-    // If less than 5 in a row, return false
-    return count >= 5 ? sequence : null;
+    if (this.mode === 0) {
+      if (count !== 5 || countBlockSide === 2)
+        return null; // Traditional mode: must be exactly 5 and no blockage at both ends
+      else return sequence; // Valid sequence
+    }
+
+    if (this.mode === 1) {
+      if (count < 5) return null; // Open mode: must be at least 5
+      else return sequence; // Valid sequence
+    }
   }
 
   checkDiagonalRight([x, y]) {
     let copyX = x;
     let copyY = y;
     const sequence = [[x, y]]; // Start index
+    let countBlockSide = 0; // Blocked sides counter
 
     const currentSymbol = this.board[x][y];
     let count = 1; // Counting the starting one
 
     // Check down-right
     while (copyX + 1 < rows && copyY + 1 < columns) {
-      if (currentSymbol !== this.board[copyX + 1][copyY + 1]) break;
+      if (currentSymbol !== this.board[copyX + 1][copyY + 1]) {
+        if (this.board[copyX + 1][copyY + 1] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX++;
       copyY++;
       sequence.push([copyX, copyY]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
     copyX = x; // Reset row index
@@ -468,38 +546,47 @@ class Game {
 
     // Check up-left
     while (copyX - 1 >= 0 && copyY - 1 >= 0) {
-      if (currentSymbol !== this.board[copyX - 1][copyY - 1]) break;
+      if (currentSymbol !== this.board[copyX - 1][copyY - 1]) {
+        if (this.board[copyX - 1][copyY - 1] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX--;
       copyY--;
       sequence.push([copyX, copyY]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
-    // If less than 5 in a row, return false
-    return count >= 5 ? sequence : null;
+    if (this.mode === 0) {
+      if (count !== 5 || countBlockSide === 2)
+        return null; // Traditional mode: must be exactly 5 and no blockage at both ends
+      else return sequence; // Valid sequence
+    }
+
+    if (this.mode === 1) {
+      if (count < 5) return null; // Open mode: must be at least 5
+      else return sequence; // Valid sequence
+    }
   }
 
   checkDiagonalLeft([x, y]) {
     let copyX = x;
     let copyY = y;
     const sequence = [[x, y]]; // Start index
+    let countBlockSide = 0; // Blocked sides counter
 
     const currentSymbol = this.board[x][y];
     let count = 1; // Counting the starting one
 
     // Check down-left
     while (copyX + 1 < rows && copyY - 1 >= 0) {
-      if (currentSymbol !== this.board[copyX + 1][copyY - 1]) break;
+      if (currentSymbol !== this.board[copyX + 1][copyY - 1]) {
+        if (this.board[copyX + 1][copyY - 1] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX++;
       copyY--;
       sequence.push([copyX, copyY]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
     copyX = x; // Reset row index
@@ -507,18 +594,26 @@ class Game {
 
     // Check up-right
     while (copyX - 1 >= 0 && copyY + 1 < columns) {
-      if (currentSymbol !== this.board[copyX - 1][copyY + 1]) break;
+      if (currentSymbol !== this.board[copyX - 1][copyY + 1]) {
+        if (this.board[copyX - 1][copyY + 1] != null) countBlockSide += 1; // Count blocked side
+        break;
+      }
       copyX--;
       copyY++;
       sequence.push([copyX, copyY]);
       count++;
-      if (count === 5) {
-        return sequence; // Return the sequence if 5 in a row is found
-      }
     }
 
-    // If less than 5 in a row, return false
-    return count >= 5 ? sequence : null;
+    if (this.mode === 0) {
+      if (count !== 5 || countBlockSide === 2)
+        return null; // Traditional mode: must be exactly 5 and no blockage at both ends
+      else return sequence; // Valid sequence
+    }
+
+    if (this.mode === 1) {
+      if (count < 5) return null; // Open mode: must be at least 5
+      else return sequence; // Valid sequence
+    }
   }
 }
 

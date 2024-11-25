@@ -3,6 +3,10 @@ import { useUserContext } from "../../context/UserContext";
 
 function CaroGameOverMessage({ gameObject }) {
   const result = gameObject.result;
+  const { user } = useUserContext();
+  const userStats = gameObject.players[user._id];
+  console.log(userStats);
+
   let text;
   switch (result.type) {
     case "abort": {
@@ -31,7 +35,15 @@ function CaroGameOverMessage({ gameObject }) {
             won {result.reason} ({gameObject.turnDuration} seconds)
           </span>
           <br />
-          <span></span>
+          <span>
+            Your new rating is{" "}
+            {userStats.rankId.tier +
+              " " +
+              userStats.currentDivision +
+              " (" +
+              userStats.lp +
+              " LP)"}
+          </span>
         </>
       );
       break;

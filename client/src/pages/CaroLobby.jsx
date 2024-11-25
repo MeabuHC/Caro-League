@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Spin } from "antd";
+import { Modal, Spin, Switch } from "antd";
 import { useCaroSocket } from "../context/CaroSocketContext";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +9,7 @@ export default function Games() {
   const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gameId, setGameId] = useState(null); //For leave game
+  const [isChecked, setIsChecked] = useState(true);
   const [playerStats, setPlayerStats] = useState(null);
   const [matchMaking, setMatchMaking] = useState(false);
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Games() {
   useEffect(() => {
     if (matchMaking && socket) {
       setIsModalOpen(true);
-      socket.emit("find-match-making");
+      socket.emit("find-match-making", isChecked ? 0 : 1);
       console.log("Start quick play");
     }
   }, [matchMaking, socket]);
@@ -113,6 +114,12 @@ export default function Games() {
     playerStats.rankId.tier === "master"
       ? "100%"
       : (playerStats.lp / playerStats.rankId.lpThreshold) * 100 + "%";
+
+  //Toggle Mode
+  const handleSwitchChange = (checked) => {
+    setIsChecked(checked); // Update state based on switch value
+    console.log(checked);
+  };
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
@@ -155,6 +162,16 @@ export default function Games() {
         <button className="px-6 py-3 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out">
           Find Game
         </button>
+      </div>
+
+      {/* {Toggle mode} */}
+      <div className="flex mt-3">
+        <Switch
+          checked={isChecked} // Controlled by state
+          onChange={handleSwitchChange} // Update state when toggled
+          checkedChildren={"Standard Mode"}
+          unCheckedChildren={"Open Mode"}
+        />
       </div>
 
       {/* Quick Play Modal */}
