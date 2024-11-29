@@ -217,13 +217,6 @@ class Game {
   //Calculate LP changes for win, lose and draw
   calculateLpChanges() {
     const playerId = Array.from(this.players.keys());
-    playerId.forEach((value) =>
-      this.lpChanges.set(value, {
-        win: 55,
-        lose: -55,
-        draw: 1,
-      })
-    );
 
     //Player 1 lp changes
     this.lpChanges.set(playerId[0], {

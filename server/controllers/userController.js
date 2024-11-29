@@ -41,7 +41,7 @@ export const sendMe = catchAsync(async (req, res, next) => {
 });
 
 export const updateMe = catchAsync(async (req, res, next) => {
-  const allowedFields = ["username"];
+  const allowedFields = ["username", "statusText"];
   const body = filterObj(req.body, allowedFields);
 
   validateInput(body, updateSchema);

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import styles from "../styles/components/SettingPasswordInput.module.css";
-import showIcon from "../assets/svg/eye.svg";
-import hideIcon from "../assets/svg/eye-cross.svg";
-import crossIcon from "../assets/svg/cross-icon.svg";
-import tickIcon from "../assets/svg/tick-icon.svg";
+import styles from "../../styles/components/SettingPasswordInput.module.css";
+import showIcon from "../../assets/svg/eye.svg";
+import hideIcon from "../../assets/svg/eye-cross.svg";
+import crossIcon from "../../assets/svg/cross-icon.svg";
+import tickIcon from "../../assets/svg/tick-icon.svg";
 
 export function SettingPasswordInput({
   passwords,

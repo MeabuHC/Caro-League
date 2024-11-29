@@ -1,8 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Avatar } from "antd";
 import { SettingButtons } from "./SettingButtons";
-import { useUserContext } from "../context/UserContext";
-import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
+import { useUserContext } from "../../context/UserContext";
+import axiosWithRefreshToken from "../../utils/axiosWithRefreshToken";
 
 export function SettingAvatar() {
   const inputRef = useRef(null);

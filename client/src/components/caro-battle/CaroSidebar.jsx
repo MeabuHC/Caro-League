@@ -28,7 +28,7 @@ function CaroSidebar({
     >
       {/* Header */}
       <div className="game-mode flex-1 flex flex-row items-center px-[15px] text-[#C3C2C1]">
-        <strong>{gameObject.mode === 0 ? `Standard Mode` : `Open Mode`}</strong>
+        <strong>{gameObject.mode === 0 ? `Basic Mode` : `Open Mode`}</strong>
         <Tooltip
           title={
             gameObject.mode === 0

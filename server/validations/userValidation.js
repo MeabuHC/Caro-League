@@ -34,6 +34,11 @@ export const setupSchema = Joi.object({
       "string.email": "Please enter a valid email address",
     }),
 
+  username: Joi.string().trim().min(3).max(10).required().messages({
+    "string.min": "Username must be at least 3 characters long",
+    "string.max": "Username cannot exceed 10 characters",
+  }),
+
   password: Joi.string()
     .min(6)
     .max(20)
@@ -60,10 +65,13 @@ export const setupSchema = Joi.object({
 }).unknown(false);
 
 export const updateSchema = Joi.object({
-  username: Joi.string().trim().min(3).max(20).required().messages({
-    "string.empty": "Username is required",
+  username: Joi.string().trim().min(3).max(10).messages({
     "string.min": "Username must be at least 3 characters long",
     "string.max": "Username cannot exceed 10 characters",
+  }),
+  statusText: Joi.string().min(0).max(50).messages({
+    "string.min": "Status text must be at least 0 characters long",
+    "string.max": "Status text cannot exceed 50 characters",
   }),
 }).unknown(false);
 

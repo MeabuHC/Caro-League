@@ -1,4 +1,4 @@
-import styles from "../styles/components/SettingTextInput.module.css";
+import styles from "../../styles/components/SettingTextInput.module.css";
 import { useState } from "react";
 import Alert from "antd/es/alert/Alert";
 import { WarningOutlined } from "@ant-design/icons";

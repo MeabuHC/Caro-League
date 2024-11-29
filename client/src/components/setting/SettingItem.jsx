@@ -1,4 +1,4 @@
-import styles from "../styles/components/SettingItem.module.css";
+import styles from "../../styles/components/SettingItem.module.css";
 import { SettingAvatar } from "./SettingAvatar";
 import { SettingPassword } from "./SettingPassword";
 import { SettingUsername } from "./SettingUsername";

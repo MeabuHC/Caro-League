@@ -8,6 +8,8 @@ import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import seasonRoutes from "./routes/seasonRoutes.js";
 import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import friendRequestRoutes from "./routes/friendRequestRoutes.js";
 import errorController from "./controllers/errorController.js";
 
 const app = new express();
@@ -43,6 +45,8 @@ app.use("/", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/seasons", seasonRoutes);
 app.use("/api/v1/games", gameHistoryRoutes);
+app.use("/api/v1/profile", profileRoutes);
+app.use("/api/v1/friend-requests", friendRequestRoutes);
 
 //Handle undefined route
 app.all("*", (req, res, next) => {

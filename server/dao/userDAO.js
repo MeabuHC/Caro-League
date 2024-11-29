@@ -53,8 +53,56 @@ class UserDAO {
     return await sqlQuery;
   }
 
-  async findUserById(id) {
-    return await User.findById(id);
+  async addFriends(userAId, userBId) {
+    if (userAId === userBId) {
+      throw new Error("A user cannot add themselves as a friend.");
+    }
+
+    // Add userB to userA's friends list
+    const userAUpdate = await User.findByIdAndUpdate(
+      userAId,
+      { $addToSet: { friends: userBId } }, // $addToSet ensures no duplicates
+      { new: true }
+    );
+
+    // Add userA to userB's friends list
+    const userBUpdate = await User.findByIdAndUpdate(
+      userBId,
+      { $addToSet: { friends: userAId } },
+      { new: true }
+    );
+
+    if (!userAUpdate || !userBUpdate) {
+      throw new Error("Failed to update the friends list.");
+    }
+
+    return { userAUpdate, userBUpdate };
+  }
+
+  async removeFriend(userAId, userBId) {
+    if (userAId === userBId) {
+      throw new Error("A user cannot remove themselves as a friend.");
+    }
+
+    // Remove userB from userA's friends list
+    const userAUpdate = await User.findByIdAndUpdate(
+      userAId,
+      { $pull: { friends: userBId } }, // $pull removes the friend
+      { new: true }
+    );
+
+    // Remove userA from userB's friends list
+    const userBUpdate = await User.findByIdAndUpdate(
+      userBId,
+      { $pull: { friends: userAId } },
+      { new: true }
+    );
+
+    if (!userAUpdate || !userBUpdate) {
+      throw new Error("Failed to update the friends list.");
+    }
+
+    return { userAUpdate, userBUpdate };
   }
 }
 

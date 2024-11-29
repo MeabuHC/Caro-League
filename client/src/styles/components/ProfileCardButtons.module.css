@@ -1,0 +1,3 @@
+.modalWrapper :global(.ant-modal-content) {
+  background-color: #262421;
+}

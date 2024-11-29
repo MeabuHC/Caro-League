@@ -47,7 +47,8 @@ const userSchema = new mongoose.Schema(
     },
     avatarUrl: {
       type: String,
-      default: "/img/default-avatar.jpg", // Relative path to the default avatar
+      default:
+        "https://res.cloudinary.com/dfa4flhk3/image/upload/v1730256816/default-avatar_ov4k4u.jpg", // Relative path to the default avatar
     },
     gender: {
       type: String,
@@ -60,6 +61,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "player"],
       default: "player",
+    },
+    statusText: {
+      type: String,
+      default: "Newbie Caro Player",
+      maxlength: [50, "Status text cannot exceed 50 characters"],
+      minlength: [0, "Status text must be at least 0 characters"],
+    },
+    friends: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
     },
   },
   {
@@ -103,7 +115,6 @@ userSchema.methods.changePasswordAfter = function (JWTTimeStamp) {
 userSchema.methods.correctPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-
 const User = mongoose.model("User", userSchema);
 
 export default User;

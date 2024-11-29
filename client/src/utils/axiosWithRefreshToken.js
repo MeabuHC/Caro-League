@@ -12,6 +12,11 @@ const axiosWithRefreshToken = async (url, method = "GET", data = null) => {
     });
     return response;
   } catch (error) {
+    //If not because of unauthorized
+    if (error.response && error.response.status != 401) {
+      throw error;
+    }
+
     try {
       // Attempt token refresh
       await axios.post(

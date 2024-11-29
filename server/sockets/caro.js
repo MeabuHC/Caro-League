@@ -159,7 +159,9 @@ const Caro = {
       // Prepare the new game and update player stats
       for (const [playerId, playerStats] of oldGame.players.entries()) {
         //Refetch
-        const newStats = await GameStatsDAO.getGameStatsFromUserId(playerId);
+        const newStats = await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(
+          playerId
+        );
         newGame.addPlayer(null, newStats);
       }
 
@@ -245,7 +247,9 @@ const caroHandlers = async (socket, caroNamespace) => {
 
     // Handle request player stats
     socket.on("get-player-stats", async () => {
-      let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+      let playerStats = await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(
+        decoded.id
+      ); //Refetch again
       if (playerStats === null) {
         playerStats = await GameStatsDAO.createGameStatsForUserId(decoded.id);
       }
@@ -254,7 +258,9 @@ const caroHandlers = async (socket, caroNamespace) => {
 
     // Handle finding a match
     socket.on("find-match-making", async (mode) => {
-      let playerStats = await GameStatsDAO.getGameStatsFromUserId(decoded.id); //Refetch again
+      let playerStats = await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(
+        decoded.id
+      ); //Refetch again
       Caro.findMatchMaking(socket, caroNamespace, playerStats, mode);
     });
 

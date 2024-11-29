@@ -4,8 +4,12 @@ import rankingDAO from "./rankingDAO.js";
 import seasonDAO from "./seasonDAO.js";
 
 class GameStatsDAO {
-  async getGameStatsFromUserId(userId) {
-    const gameStats = await GameStats.findOne({ userId })
+  async getCurrentSeasonGameStatsFromUserId(userId) {
+    const currentSeasonId = (await seasonDAO.getCurrentActiveSeason()).id;
+    const gameStats = await GameStats.findOne({
+      userId,
+      seasonId: currentSeasonId,
+    })
       .populate("userId")
       .populate("rankId")
       .populate("seasonId");

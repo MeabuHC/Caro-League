@@ -22,11 +22,32 @@ function getItem(label, key, icon, children) {
 }
 
 const items = [
-  getItem(<Link to={"/"}>Home</Link>, "0", <HomeOutlined />),
-  getItem(<Link to={"/profile"}>Profile</Link>, "1", <UserOutlined />),
-  getItem(<Link to={"/caro"}>Caro</Link>, "2", <DesktopOutlined />),
-  getItem(<Link to={"/chats"}>Chats</Link>, "3", <MessageOutlined />),
-  getItem("Friends", "4", <TeamOutlined />),
+  getItem(
+    <Link to={"/"} style={{ color: "white" }}>
+      Home
+    </Link>,
+    "0",
+    <HomeOutlined style={{ color: "white" }} />
+  ),
+  getItem(
+    <Link to={"/caro"} style={{ color: "white" }}>
+      Caro
+    </Link>,
+    "2",
+    <DesktopOutlined style={{ color: "white" }} />
+  ),
+  getItem(
+    <Link to={"/chats"} style={{ color: "white" }}>
+      Chats
+    </Link>,
+    "3",
+    <MessageOutlined style={{ color: "white" }} />
+  ),
+  getItem(
+    <span style={{ color: "white" }}>Friends</span>,
+    "4",
+    <TeamOutlined style={{ color: "white" }} />
+  ),
 ];
 
 const CustomSider = () => {
@@ -36,13 +57,7 @@ const CustomSider = () => {
   )?.key;
 
   return (
-    <Sider
-      width={195}
-      className={styles.sider}
-      collapsible
-      collapsedWidth={70}
-      defaultCollapsed={true}
-    >
+    <Sider width={195} className={styles.sider} defaultCollapsed={true}>
       <Menu items={items} selectedKeys={selectedKey ? [selectedKey] : []} />
     </Sider>
   );

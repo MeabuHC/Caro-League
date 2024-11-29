@@ -1,5 +1,6 @@
 // controllers/userController.js
 import userDAO from "../dao/userDAO.js";
+import gameStatsDAO from "../dao/gameStatsDAO.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
 import {
@@ -50,7 +51,7 @@ export const refreshToken = catchAsync(async (req, res, next) => {
   const decoded = await getTokenPayload(refreshToken); // Decode refresh token
 
   // Check if the user still exists
-  const freshUser = await userDAO.findUserById(decoded.id);
+  const freshUser = await userDAO.getUserById(decoded.id);
   if (!freshUser) {
     return next(
       new AppError("The user belonging to this token no longer exists!", 401)
@@ -131,6 +132,10 @@ export const setup = catchAsync(async (req, res, next) => {
   const userData = { email, username, password };
   // Create the user using the DAO
   const user = await userDAO.createUser(userData);
+  // Create game stats on the new user
+  console.log(user);
+  const newGameStats = await gameStatsDAO.createGameStatsForUserId(user._id);
+
   // Remove password from output
   user.password = undefined;
 
@@ -185,7 +190,7 @@ export const protect = catchAsync(async (req, res, next) => {
   const decoded = await getTokenPayload(accessToken);
 
   // Check if user still exists
-  const freshUser = await userDAO.findUserById(decoded.id);
+  const freshUser = await userDAO.getUserById(decoded.id);
   if (!freshUser) {
     return next(
       new AppError("The user belonging to this token no longer exists!", 401)
@@ -201,6 +206,27 @@ export const protect = catchAsync(async (req, res, next) => {
 
   // Pass the user to the next middleware
   req.user = freshUser;
+  next();
+});
+
+//Take out the user from cookies if existed and valid
+export const optionalAuth = catchAsync(async (req, res, next) => {
+  const accessToken = req.cookies.accessToken;
+
+  if (accessToken) {
+    try {
+      const decoded = await getTokenPayload(accessToken);
+
+      const freshUser = await userDAO.getUserById(decoded.id);
+      if (freshUser && !freshUser.changePasswordAfter(decoded.iat)) {
+        req.user = freshUser;
+      }
+    } catch (err) {
+      req.user = null;
+    }
+  } else {
+    req.user = null;
+  }
   next();
 });
 

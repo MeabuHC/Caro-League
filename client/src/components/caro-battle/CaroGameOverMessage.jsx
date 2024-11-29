@@ -1,5 +1,6 @@
 import React from "react";
 import { useUserContext } from "../../context/UserContext";
+import { Link } from "react-router-dom";
 
 function CaroGameOverMessage({ gameObject }) {
   const result = gameObject.result;
@@ -25,13 +26,13 @@ function CaroGameOverMessage({ gameObject }) {
       text = (
         <>
           <span>
-            <a
-              href={`/member/${result.winner}`}
+            <Link
+              to={`/member/${result.winner}`}
               className="hover:text-[#DFDEDE] font-bold"
               target="_blank"
             >
               {result.winner}
-            </a>{" "}
+            </Link>{" "}
             won {result.reason} ({gameObject.turnDuration} seconds)
           </span>
           <br />

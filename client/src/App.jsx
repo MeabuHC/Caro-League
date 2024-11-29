@@ -22,15 +22,9 @@ function App() {
           {/* Same Layout Route */}
           <Route path="/" element={<LayoutWrapper />}>
             <Route index element={<Home />} />
+            <Route path="profile/:username" element={<Profile />} />
             {/* Protected routes */}
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+
             <Route
               path="chats"
               element={

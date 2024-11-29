@@ -1,4 +1,4 @@
-import { SettingItem } from "../components/SettingItem";
+import { SettingItem } from "../components/setting/SettingItem";
 import styles from "../styles/pages/Settings.module.css";
 
 export default function Settings() {

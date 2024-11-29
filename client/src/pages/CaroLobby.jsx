@@ -122,7 +122,7 @@ export default function Games() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
+    <div className="flex flex-col justify-center items-center h-full bg-[#302E2B]">
       {/* Rank Card */}
       <div className="bg-white shadow-lg rounded-lg p-6 mb-8 w-80">
         <div className="flex items-center mb-4">
@@ -169,7 +169,7 @@ export default function Games() {
         <Switch
           checked={isChecked} // Controlled by state
           onChange={handleSwitchChange} // Update state when toggled
-          checkedChildren={"Standard Mode"}
+          checkedChildren={"Basic Mode"}
           unCheckedChildren={"Open Mode"}
         />
       </div>

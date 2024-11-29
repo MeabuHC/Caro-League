@@ -27,6 +27,7 @@ const Setup = () => {
 
   const [isVerified, setIsVerified] = useState(false); // Track verification status
 
+  //Send token to get email
   useEffect(() => {
     setLoading(true);
     const verifyEmail = async () => {
@@ -99,6 +100,7 @@ const Setup = () => {
     }
 
     try {
+      setLoading(true);
       const { data } = await axios.post(`${baseUrl}/setup`, formData, {
         headers: { "Content-Type": "application/json" },
       });
@@ -115,6 +117,8 @@ const Setup = () => {
           error.response?.data?.message || "Network error. Please try again.",
         success: "",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

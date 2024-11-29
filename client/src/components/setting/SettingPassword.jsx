@@ -1,10 +1,10 @@
 import { SettingTextInput } from "./SettingTextInput";
-import { useUserContext } from "../context/UserContext";
-import styles from "../styles/components/SettingPassword.module.css";
+import { useUserContext } from "../../context/UserContext";
+import styles from "../../styles/components/SettingPassword.module.css";
 import { SettingPasswordInput } from "./SettingPasswordInput";
 import { useEffect, useState } from "react";
 import { SettingButtons } from "./SettingButtons";
-import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
+import axiosWithRefreshToken from "../../utils/axiosWithRefreshToken";
 import Alert from "antd/es/alert/Alert";
 import { WarningOutlined, CheckCircleOutlined } from "@ant-design/icons";
 

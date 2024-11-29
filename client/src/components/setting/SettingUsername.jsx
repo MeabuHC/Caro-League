@@ -1,8 +1,8 @@
 import { SettingTextInput } from "./SettingTextInput";
-import { useUserContext } from "../context/UserContext";
+import { useUserContext } from "../../context/UserContext";
 import { useState } from "react";
 import { SettingButtons } from "./SettingButtons";
-import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
+import axiosWithRefreshToken from "../../utils/axiosWithRefreshToken";
 
 export function SettingUsername() {
   const [isChanged, setIsChanged] = useState(false);

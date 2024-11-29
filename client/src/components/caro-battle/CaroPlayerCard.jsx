@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 function CaroPlayerCard({ playerStats, lpChange = null }) {
@@ -14,9 +15,9 @@ function CaroPlayerCard({ playerStats, lpChange = null }) {
 
       <div className="player-tagline flex flex-col">
         <div className="player-username flex-1">
-          <a className="text-white text-base cursor-pointer hover:text-gray-300">
+          <Link className="text-white text-base cursor-pointer hover:text-gray-300">
             {playerStats.userId.username}
-          </a>
+          </Link>
         </div>
         <div className="player-rank flex-1 flex items-center">
           <img

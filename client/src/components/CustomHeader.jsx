@@ -26,7 +26,7 @@ const CustomHeader = () => {
 
   const items = [
     {
-      label: <Link to={"/profile"}>Profile</Link>,
+      label: <Link to={`/profile/${user?.username}`}>Profile</Link>,
       key: "1",
     },
     {
@@ -37,7 +37,7 @@ const CustomHeader = () => {
       type: "divider",
     },
     {
-      label: <a onClick={handleLogout}>Logout</a>,
+      label: <Link onClick={handleLogout}>Logout</Link>,
       key: "3",
     },
   ];
@@ -46,11 +46,11 @@ const CustomHeader = () => {
     <Header className={styles.header}>
       <div className={styles.left}>
         <Link to={"/"}>
-          <img
+          {/* <img
             src="https://pro-theme.com/html/teamhost/assets/img/logo.png"
             alt="Logo"
-          />
-          <span>CAROLEAGUE</span>
+          /> */}
+          <span className="text-white">CAROLEAGUE</span>
         </Link>
       </div>
       <div className={styles.right}>
@@ -61,7 +61,7 @@ const CustomHeader = () => {
             trigger={["click"]}
             className={styles.dropdown}
           >
-            <a onClick={(e) => e.preventDefault()}>
+            <Link onClick={(e) => e.preventDefault()}>
               <img
                 src={`${user.avatarUrl}`}
                 className={styles.avatar}
@@ -69,7 +69,7 @@ const CustomHeader = () => {
               />
               {user.username}
               <DownOutlined />
-            </a>
+            </Link>
           </Dropdown>
         ) : (
           <div className={styles.buttons}>

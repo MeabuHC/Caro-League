@@ -1,4 +1,4 @@
-import styles from "../styles/components/SettingButtons.module.css";
+import styles from "../../styles/components/SettingButtons.module.css";
 import { Spin } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
