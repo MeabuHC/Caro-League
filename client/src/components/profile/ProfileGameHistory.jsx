@@ -74,14 +74,12 @@ function ProfileGameHistory({ profileData }) {
                   </td>
                   {/* Players */}
                   <td className="h-[75px]">
-                    <div
-                      className="w-full h-full text-center flex flex-row items-center hover:text-current"
-                      onClick={(e) => {
-                        window.location.href = `/caro/game/live/${element.gameId}`;
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div className="game-players h-[34px] flex flex-col items-start">
+                    <div className="w-full h-full text-center flex flex-row items-center hover:text-current relative">
+                      <Link
+                        to={`/caro/game/live/${element.gameId}`}
+                        className="absolute top-0 left-0 w-full h-full z-[1]"
+                      />
+                      <div className="game-players h-[34px] flex flex-col items-start z-[2]">
                         <div className="player-tagline">
                           <span className="player-symbol mr-2 font-caroFont text-blue-600">
                             X

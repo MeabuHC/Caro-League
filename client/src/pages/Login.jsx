@@ -10,7 +10,7 @@ import { useUserContext } from "../context/UserContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useUserContext();
+  const { user, setUser, setRefetch } = useUserContext();
   const [loading, setLoading] = useState(false);
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -69,7 +69,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
     try {
       const data = await axios.post(`${baseUrl}/login`, formData, {
@@ -80,7 +79,7 @@ const Login = () => {
       // If success
 
       await delay(1000);
-      setUser(data.data.data.user);
+      setRefetch(true);
       navigate("/");
     } catch (error) {
       // If fail

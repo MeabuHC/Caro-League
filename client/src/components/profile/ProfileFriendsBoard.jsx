@@ -1,10 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { useUserContext } from "../../context/UserContext";
 
 function ProfileFriendsBoard({ profileData }) {
+  const [friendActiveStatus, setFriendActiveStatus] = useState(
+    profileData.friendActiveStatus
+  );
   const friendList = profileData.userId.friends;
   const gridRows = friendList.length > 5 ? "grid-rows-2" : "grid-rows-1";
+  const { socket: userSocket } = useUserContext();
+
+  useEffect(() => {
+    if (userSocket) {
+      const handleUserActiveStatus = (data) => {
+        setFriendActiveStatus((prevStatus) => ({
+          ...prevStatus,
+          [data.userId]: {
+            isActive: data.online,
+            last_active: data.last_active,
+          },
+        }));
+      };
+
+      userSocket.on("user-active-status", handleUserActiveStatus);
+
+      return () => {
+        userSocket.off("user-active-status", handleUserActiveStatus);
+      };
+    }
+  }, []);
 
   return (
     <div className="friends-board w-full bg-[#262522] rounded-md">
@@ -25,11 +50,16 @@ function ProfileFriendsBoard({ profileData }) {
                 title={`${friend.username}`}
                 key={friend._id}
               >
-                <img
-                  src={`${friend.avatarUrl}`}
-                  alt="Avatar"
-                  className="w-[50px] h-[50px]"
-                />
+                <div className="w-[50px] h-[50px] relative">
+                  <img
+                    src={`${friend.avatarUrl}`}
+                    alt="Avatar"
+                    className="w-full h-full"
+                  />
+                  {friendActiveStatus[friend._id].isActive && (
+                    <div className="h-[15px] w-[15px] absolute bg-[#81B64C] bottom-0 right-0"></div>
+                  )}
+                </div>
               </Link>
             );
           })}

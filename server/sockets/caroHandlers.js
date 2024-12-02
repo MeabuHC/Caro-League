@@ -234,13 +234,14 @@ const caroHandlers = async (socket, caroNamespace) => {
 
     // Extract user ID from JWT token
     const token = getAccessTokenFromCookies(socket.request.headers.cookie);
-    // if (!token) {
-    //   console.log("Unauthorized!");
-    //   socket.emit("unauthorized", {
-    //     status: "fail",
-    //     message: "jwt token missing or invalid!",
-    //   });
-    // }
+    if (!token) {
+      console.log("Unauthorized!");
+      socket.emit("unauthorized", {
+        status: "fail",
+        message: "jwt token missing or invalid!",
+      });
+      return;
+    }
     const decoded = await getTokenPayload(token);
     const userId = decoded.id;
     const user = await userDAO.getUserById(userId);

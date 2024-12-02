@@ -5,6 +5,7 @@ import userDAO from "../dao/userDAO.js";
 import gameStatsDAO from "../dao/gameStatsDAO.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
+import redisClient from "../utils/redisClient.js";
 import seasonDAO from "../dao/seasonDAO.js";
 import User from "../models/userModel.js";
 import Season from "../models/seasonModel.js";
@@ -75,6 +76,7 @@ export const getProfileData = catchAsync(async (req, res, next) => {
         .reverse();
     }
 
+    //Populate data
     await User.populate(profileData, {
       path: "userId.friends",
       select: "username avatarUrl",
@@ -99,6 +101,10 @@ export const getProfileData = catchAsync(async (req, res, next) => {
     });
 
     if (viewer && user[0].username != viewer.username) {
+      //Update profile view count
+      await updateViewCount(viewer._id.toString(), userId.toString());
+
+      //Sent friend request or friend status along
       const friendRequest = await friendRequestDAO.findFriendRequest(
         userId,
         viewer._id,
@@ -114,9 +120,60 @@ export const getProfileData = catchAsync(async (req, res, next) => {
         profileData[0].isFriend = true;
     }
 
+    const profileActiveStatus = JSON.parse(
+      await redisClient.get(`user:${userId}:status`)
+    );
+
+    //Add active status
+    profileData[0].isActive = profileActiveStatus?.online || false;
+    profileData[0].last_active = profileActiveStatus?.last_active || null;
+
+    // Add custom fields for active status and login for friends
+    const friendActiveStatus = {};
+    for (const friend of profileData[0]?.userId?.friends) {
+      const friendId = friend._id.toString();
+      const friendStatus = await redisClient.get(`user:${friendId}:status`);
+
+      if (friendStatus) {
+        const status = JSON.parse(friendStatus);
+        friendActiveStatus[friendId] = {
+          isActive: status?.online || false,
+          lastActive: status?.last_active || null,
+        };
+      } else {
+        friendActiveStatus[friendId] = {
+          isActive: false,
+          lastActive: null,
+        };
+      }
+    }
+    profileData[0].friendActiveStatus = friendActiveStatus;
+
     res.status(200).json({
       status: "success",
       data: profileData[0],
     });
   }
 });
+
+//Update view count when someone called profile api
+const updateViewCount = async (viewerId, profileId) => {
+  if (viewerId === profileId) {
+    console.log("Visiting home profile!");
+    return;
+  }
+
+  const key = `views:${viewerId}:${profileId}`;
+  const viewData = await redisClient.set(key, "x", {
+    NX: true,
+    EX: 600,
+  });
+
+  if (viewData === "OK") {
+    await userDAO.updateUserById(profileId, {
+      $inc: {
+        viewCount: 1,
+      },
+    });
+  }
+};

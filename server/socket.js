@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
-import caroHandlers from "./sockets/caro.js";
+import caroHandlers from "./sockets/caroHandlers.js";
+import appHandlers from "./sockets/appHandlers.js";
 
 export function initSocket(server) {
   const io = new Server(server, {
@@ -8,6 +9,11 @@ export function initSocket(server) {
       methods: ["GET", "POST"],
       credentials: true,
     },
+  });
+
+  const appNamespace = io.of("/app");
+  appNamespace.on("connection", (socket) => {
+    appHandlers(socket, appNamespace);
   });
 
   const caroNamespace = io.of("/caro");

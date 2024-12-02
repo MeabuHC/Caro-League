@@ -73,6 +73,10 @@ const userSchema = new mongoose.Schema(
       ref: "User",
       default: [],
     },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     versionKey: false,
@@ -115,6 +119,7 @@ userSchema.methods.changePasswordAfter = function (JWTTimeStamp) {
 userSchema.methods.correctPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
 const User = mongoose.model("User", userSchema);
 
 export default User;

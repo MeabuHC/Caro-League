@@ -10,7 +10,7 @@ const { Header } = Layout;
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const CustomHeader = () => {
-  const { user, setUser } = useUserContext();
+  const { user, setUser, socket, setSocket } = useUserContext();
   const navigate = useNavigate();
 
   //Handle logout button
@@ -18,6 +18,8 @@ const CustomHeader = () => {
     try {
       await axios.post(`${baseUrl}/logout`, {}, { withCredentials: true });
       setUser(null);
+      socket.disconnect();
+      setSocket(null);
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);

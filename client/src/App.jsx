@@ -7,12 +7,12 @@ import Home from "./pages/Home";
 import CaroLobby from "./pages/CaroLobby";
 import Chats from "./pages/Chats";
 import LayoutWrapper from "./components/LayoutWrapper";
-import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Settings from "./pages/Settings";
 import { UserProvider } from "./context/UserContext";
 import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
+import ProfileWrapper from "./pages/Profile";
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
           {/* Same Layout Route */}
           <Route path="/" element={<LayoutWrapper />}>
             <Route index element={<Home />} />
-            <Route path="profile/:username" element={<Profile />} />
+            <Route path="profile/:username" element={<ProfileWrapper />} />
             {/* Protected routes */}
 
             <Route

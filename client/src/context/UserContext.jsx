@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
 import delay from "../utils/delay";
 import { Spin } from "antd";
+import { io } from "socket.io-client";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const UserContext = createContext();
 
@@ -9,6 +11,7 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refetch, setRefetch] = useState(true);
+  const [socket, setSocket] = useState(null);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -17,6 +20,15 @@ export const UserProvider = ({ children }) => {
       // console.log(response.data.data.user);
       setUser(response.data.data.user);
       setRefetch(false); // Reset refetch after fetching
+
+      //Establish socket
+      if (!socket) {
+        // Now create the socket connection
+        const socketConnection = io("http://localhost:8000/app", {
+          withCredentials: true,
+        });
+        setSocket(socketConnection);
+      }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
@@ -30,7 +42,7 @@ export const UserProvider = ({ children }) => {
   }, [refetch]);
 
   // Loading screen
-  if (loading) {
+  if (loading || refetch) {
     return (
       <div
         style={{
@@ -38,15 +50,22 @@ export const UserProvider = ({ children }) => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: "#302E2B",
         }}
       >
-        <Spin size="large" />
+        <Spin
+          indicator={<LoadingOutlined spin />}
+          size="large"
+          style={{ color: "#9ECC5E" }}
+        />
       </div>
     );
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, setRefetch }}>
+    <UserContext.Provider
+      value={{ user, setUser, setRefetch, socket, setSocket }}
+    >
       {children}
     </UserContext.Provider>
   );

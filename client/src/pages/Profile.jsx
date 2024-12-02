@@ -10,9 +10,18 @@ import ProfileGameHistory from "../components/profile/ProfileGameHistory";
 import { useNavigate, useParams } from "react-router-dom";
 import ProfileStatsBoard from "../components/profile/ProfileStatsBoard";
 import ProfileFriendsBoard from "../components/profile/ProfileFriendsBoard";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
-export default function Profile() {
+export default function ProfileWrapper() {
+  const { username } = useParams(); // Get username from route params
+
+  return <Profile key={username} />; // Use username as key for remounting Profile
+}
+
+function Profile() {
   const [profileData, setProfileData] = useState(null);
+  const { user } = useUserContext();
   const { username } = useParams();
   const navigate = useNavigate();
   useEffect(() => {
@@ -26,6 +35,7 @@ export default function Profile() {
         console.log(response.data.data);
         setProfileData(response.data.data);
       } catch (error) {
+        console.log(error);
         console.error("Error fetching profile data:", error);
         navigate("/not-found");
       }
@@ -35,7 +45,24 @@ export default function Profile() {
     fetchProfileData();
   }, [username]);
 
-  if (!profileData) return;
+  if (!profileData)
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#302E2B",
+        }}
+      >
+        <Spin
+          indicator={<LoadingOutlined spin />}
+          size="large"
+          style={{ color: "#9ECC5E" }}
+        />
+      </div>
+    );
 
   return (
     <div className={`${styles.profile_container} container`}>

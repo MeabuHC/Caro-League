@@ -27,7 +27,6 @@ export const CaroSocketProvider = ({ children }) => {
         withCredentials: true,
       });
 
-      // Set the socket connection in the state
       setSocket(socketConnection);
     } catch (error) {
       console.error("Failed to refresh token or connect socket:", error);

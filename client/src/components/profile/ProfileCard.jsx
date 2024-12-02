@@ -14,7 +14,11 @@ import ProfileCardButtons from "./ProfileCardButtons.jsx";
 import { Link } from "react-router-dom";
 
 function ProfileCard({ profileData }) {
-  const { user } = useUserContext();
+  const { user, socket: userSocket } = useUserContext();
+  const [activityStatus, setActivityStatus] = useState({
+    isActive: profileData.isActive,
+    last_active: profileData.last_active,
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [statusText, setStatusText] = useState(profileData.userId.statusText);
   const statusTextInputRef = useRef(null);
@@ -27,6 +31,27 @@ function ProfileCard({ profileData }) {
       : 50 - statusText.length <= 8
       ? "text-[#FFA459]"
       : "";
+
+  console.log(activityStatus.isActive);
+
+  useEffect(() => {
+    if (userSocket) {
+      const handleUserActiveStatus = (data) => {
+        if (data.userId === profileData.userId._id.toString()) {
+          setActivityStatus(() => ({
+            isActive: data.online,
+            last_active: data.last_active,
+          }));
+        }
+      };
+
+      userSocket.on("user-active-status", handleUserActiveStatus);
+
+      return () => {
+        userSocket.off("user-active-status", handleUserActiveStatus);
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (isEditing) {
@@ -50,17 +75,24 @@ function ProfileCard({ profileData }) {
   return (
     <div className="profile-container p-8 w-[728px] bg-[#262522]  text-[#939291] relative rounded-md flex flex-col gap-6">
       <div className="profile-top-info flex flex-row h-[160px]">
-        <img
-          className="w-[160px] h-full profile-avatar mr-6 rounded-md"
-          src={profileData.userId.avatarUrl}
-        />
+        <div className="avatar-container w-[160px] h-full mr-6 rounded-md overflow-hidden relative">
+          <img
+            className="w-full h-full profile-avatar "
+            src={profileData.userId.avatarUrl}
+          />
+          {activityStatus.isActive && !isUserVisitingProfile && (
+            <div className="presence-square h-[30px] w-[30px] bg-[#81B64C] text-red-50 absolute bottom-0 right-0 rounded-tl-md"></div>
+          )}
+        </div>
 
-        <Link
-          className="edit-profile-page absolute top-[10px] right-[10px] font-medium text-xs hover:text-[#C3C2C1]"
-          to="/settings"
-        >
-          <FormOutlined /> Edit
-        </Link>
+        {isUserVisitingProfile && (
+          <Link
+            className="edit-profile-page absolute top-[10px] right-[10px] font-medium text-xs hover:text-[#C3C2C1]"
+            to="/settings"
+          >
+            <FormOutlined /> Edit
+          </Link>
+        )}
 
         <div className="profile-content flex-1 flex flex-col h-full ">
           <h1 className="font-extrabold text-2xl text-white">
@@ -70,16 +102,18 @@ function ProfileCard({ profileData }) {
           <form className="relative mt-2" onSubmit={handleSubmitForm}>
             <span className="profile-status-info text-[#C0C0BF] block pr-2 py-1">
               {statusText.length != 0 ? statusText : "Enter a status here"}
-              <Tooltip title="Edit status">
-                <div
-                  className="hover:text-[#939291] text-[#7D7C7B] ml-2 inline-block cursor-pointer"
-                  onClick={() => {
-                    if (!isEditing) setIsEditing(true);
-                  }}
-                >
-                  <FormOutlined />
-                </div>
-              </Tooltip>
+              {isUserVisitingProfile && (
+                <Tooltip title="Edit status">
+                  <div
+                    className="hover:text-[#939291] text-[#7D7C7B] ml-2 inline-block cursor-pointer"
+                    onClick={() => {
+                      if (!isEditing) setIsEditing(true);
+                    }}
+                  >
+                    <FormOutlined />
+                  </div>
+                </Tooltip>
+              )}
             </span>
 
             <div
@@ -117,7 +151,9 @@ function ProfileCard({ profileData }) {
                 <ClockCircleOutlined style={{ fontSize: "32px" }} />
               </Tooltip>
               <span className="profile-content-user-info-value font-bold mt-2">
-                Online Now
+                {activityStatus.isActive
+                  ? "Online Now"
+                  : formatLastActive(activityStatus.last_active)}
               </span>
             </div>
 
@@ -147,7 +183,7 @@ function ProfileCard({ profileData }) {
                 <EyeOutlined style={{ fontSize: "32px" }} />
               </Tooltip>
               <span className="profile-content-user-info-value font-bold mt-2">
-                3
+                {profileData.userId.viewCount}
               </span>
             </div>
           </div>
@@ -175,4 +211,29 @@ function formatDate(dateString) {
 
   const formattedDate = date.toLocaleDateString("en-US", options); // Format date
   return formattedDate;
+}
+
+function formatLastActive(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30); // approximate month length
+
+  if (months >= 1) {
+    const date = new Date(timestamp);
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return date.toLocaleDateString("en-US", options); // Format as "Apr 11, 2023"
+  } else if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else {
+    return "Just now"; // Short message for less than 1 minute
+  }
 }
