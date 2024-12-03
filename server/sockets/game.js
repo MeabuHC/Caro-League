@@ -45,10 +45,10 @@ class Game {
   }
 
   reconnectGame(socket, playerId) {
-    this.reconnectAttempt += 1;
     const player = this.players.get(playerId);
     //Reconnect
     if (player && !player.socket) {
+      this.reconnectAttempt += 1;
       socket.gameId = this.id;
       player.socket = socket;
       socket.join(this.id);
@@ -63,8 +63,23 @@ class Game {
           )
         );
       }
+      this.caroNamespace
+        .to(this.id)
+        .emit("receive-game-object", this.toObject());
     }
-    this.caroNamespace.to(this.id).emit("receive-game-object", this.toObject());
+    //If already has a socket and player open another tab
+    else if (player && player.socket && player.socket.id != socket.id)
+      this.caroNamespace
+        .to(socket.id)
+        .emit(
+          "receive-game-object",
+          null,
+          "You are already connected to this game in another tab or device."
+        );
+    else
+      this.caroNamespace
+        .to(this.id)
+        .emit("receive-game-object", this.toObject());
   }
 
   addPlayer(socket, player) {

@@ -221,7 +221,7 @@ function formatLastActive(timestamp) {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  const months = Math.floor(days / 30); // approximate month length
+  const months = Math.floor(days / 30);
 
   if (months >= 1) {
     const date = new Date(timestamp);

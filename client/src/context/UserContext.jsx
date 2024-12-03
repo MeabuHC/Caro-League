@@ -4,6 +4,7 @@ import delay from "../utils/delay";
 import { Spin } from "antd";
 import { io } from "socket.io-client";
 import { LoadingOutlined } from "@ant-design/icons";
+import LoadingSpin from "../components/LoadingSpin";
 
 const UserContext = createContext();
 
@@ -32,7 +33,7 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
-      await delay(1000); // Visual
+      await delay(2000); // Visual
       setLoading(false);
     }
   };
@@ -53,11 +54,7 @@ export const UserProvider = ({ children }) => {
           backgroundColor: "#302E2B",
         }}
       >
-        <Spin
-          indicator={<LoadingOutlined spin />}
-          size="large"
-          style={{ color: "#9ECC5E" }}
-        />
+        <LoadingSpin />
       </div>
     );
   }

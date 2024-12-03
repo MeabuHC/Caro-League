@@ -75,14 +75,17 @@ const Caro = {
 
   //Send game object to requester
   reconnectGame: (socket, gameId, userId) => {
-    console.log("Send initial game! " + socket.id);
     const gameObj = gameMap.games.get(gameId);
     if (gameObj && gameObj.state === "in-progress") {
       gameObj.reconnectGame(socket, userId);
     }
     //Game not existed or game already completed
     else {
-      socket.emit("receive-game-object", null);
+      socket.emit(
+        "receive-game-object",
+        null,
+        "The game does not exist or has already been completed."
+      );
     }
   },
 

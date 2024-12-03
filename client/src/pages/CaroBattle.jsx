@@ -5,13 +5,14 @@ import CaroTimer from "../components/caro-battle/CaroTimer";
 import { useCaroSocket } from "../context/CaroSocketContext";
 import { useNavigate, useParams } from "react-router-dom";
 import CaroResultModal from "../components/caro-battle/CaroResultModal";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useUserContext } from "../context/UserContext";
 import styles from "../styles/pages/CaroBattle.module.css";
 import CaroSidebar from "../components/caro-battle/CaroSidebar";
 import CaroTableSpectator from "../components/caro-battle/CaroTableSpectator";
 import delay from "../utils/delay";
+import LoadingSpin from "../components/LoadingSpin";
 
 function CaroBattle() {
   const { gameId } = useParams(); // Take gameId from param
@@ -41,10 +42,13 @@ function CaroBattle() {
         socket.emit("reconnect-game", gameId);
       }
 
-      const handleReceiveGameObject = (gameObj) => {
+      const handleReceiveGameObject = (gameObj, messageText) => {
         console.log("Receive game object!");
         console.log(gameObj);
-        if (!gameObj) navigate("/caro"); // If no game object, redirect
+        if (!gameObj) {
+          message.error(messageText);
+          navigate("/caro"); // If no game object, redirect
+        }
         setGameObject((prevGameObject) => {
           // New move was made
           if (
@@ -111,13 +115,7 @@ function CaroBattle() {
 
   //Wait loading
   if (!gameObject) {
-    return (
-      <Spin
-        indicator={<LoadingOutlined spin />}
-        size="small"
-        style={{ color: "white" }}
-      />
-    );
+    return <LoadingSpin />;
   }
 
   // Taking out both user data
