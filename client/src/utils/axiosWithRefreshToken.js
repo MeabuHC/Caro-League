@@ -2,13 +2,19 @@ import axios from "axios";
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
-const axiosWithRefreshToken = async (url, method = "GET", data = null) => {
+const axiosWithRefreshToken = async (
+  url,
+  method = "GET",
+  data = null,
+  headers = null
+) => {
   try {
     const response = await axios({
       url: `${baseUrl}${url}`,
       method,
       data,
       withCredentials: true,
+      headers,
     });
     return response;
   } catch (error) {
@@ -31,6 +37,7 @@ const axiosWithRefreshToken = async (url, method = "GET", data = null) => {
         method,
         data,
         withCredentials: true,
+        headers,
       });
       return retryResponse;
     } catch (refreshError) {

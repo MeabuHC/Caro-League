@@ -9,6 +9,7 @@ import {
   DesktopOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
+import { useUserContext } from "../context/UserContext";
 
 const { Sider } = Layout;
 
@@ -21,36 +22,39 @@ function getItem(label, key, icon, children) {
   };
 }
 
-const items = [
-  getItem(
-    <Link to={"/"} style={{ color: "white" }}>
-      Home
-    </Link>,
-    "0",
-    <HomeOutlined style={{ color: "white" }} />
-  ),
-  getItem(
-    <Link to={"/caro"} style={{ color: "white" }}>
-      Caro
-    </Link>,
-    "2",
-    <DesktopOutlined style={{ color: "white" }} />
-  ),
-  getItem(
-    <Link to={"/chats"} style={{ color: "white" }}>
-      Chats
-    </Link>,
-    "3",
-    <MessageOutlined style={{ color: "white" }} />
-  ),
-  getItem(
-    <span style={{ color: "white" }}>Friends</span>,
-    "4",
-    <TeamOutlined style={{ color: "white" }} />
-  ),
-];
-
 const CustomSider = () => {
+  const { user } = useUserContext();
+  const homeUrl = user ? "/home" : "/";
+
+  const items = [
+    getItem(
+      <Link to={homeUrl} style={{ color: "white" }}>
+        Home
+      </Link>,
+      "0",
+      <HomeOutlined style={{ color: "white" }} />
+    ),
+    getItem(
+      <Link to={"/caro"} style={{ color: "white" }}>
+        Caro
+      </Link>,
+      "2",
+      <DesktopOutlined style={{ color: "white" }} />
+    ),
+    getItem(
+      <Link to={"/chats"} style={{ color: "white" }}>
+        Chats
+      </Link>,
+      "3",
+      <MessageOutlined style={{ color: "white" }} />
+    ),
+    getItem(
+      <span style={{ color: "white" }}>Friends</span>,
+      "4",
+      <TeamOutlined style={{ color: "white" }} />
+    ),
+  ];
+
   const location = useLocation();
   const selectedKey = items.find(
     (item) => location.pathname === item.label.props?.to

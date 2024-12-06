@@ -54,7 +54,7 @@ function CaroBattleHistory({ gameData }) {
             }
           />
         </div>
-        <div className="caro-table self-center bg-slate-300 my-4">
+        <div className="caro-table self-center my-4">
           <CaroTableSpectator
             moveHistory={gameData.moveHistory[moveIndex]}
             pattern={

@@ -3,7 +3,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Setup from "./pages/Setup";
-import Home from "./pages/Home";
+import GuestHome from "./pages/GuestHome";
 import CaroLobby from "./pages/CaroLobby";
 import Chats from "./pages/Chats";
 import LayoutWrapper from "./components/LayoutWrapper";
@@ -13,6 +13,8 @@ import { UserProvider } from "./context/UserContext";
 import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
 import ProfileWrapper from "./pages/Profile";
+import UserHome from "./pages/UserHome";
+import CaroBattleComputer from "./pages/CaroBattleComputer";
 
 function App() {
   return (
@@ -21,7 +23,8 @@ function App() {
         <Routes>
           {/* Same Layout Route */}
           <Route path="/" element={<LayoutWrapper />}>
-            <Route index element={<Home />} />
+            <Route index element={<GuestHome />} />
+            <Route path="/home" element={<UserHome />} />
             <Route path="profile/:username" element={<ProfileWrapper />} />
             {/* Protected routes */}
 
@@ -41,6 +44,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="caro/computer" element={<CaroBattleComputer />} />
+
             <Route
               path="caro"
               element={

@@ -3,11 +3,15 @@ import { promisify } from "util";
 
 // Function to extract JWT token from cookies
 export function getAccessTokenFromCookies(cookieHeader) {
-  const token = cookieHeader
-    .split("; ")
-    .find((row) => row.startsWith("accessToken="))
-    ?.split("=")[1];
-  return token;
+  try {
+    const token = cookieHeader
+      .split("; ")
+      .find((row) => row.startsWith("accessToken="))
+      ?.split("=")[1];
+    return token;
+  } catch {
+    return null;
+  }
 }
 
 // Function to sign tokens

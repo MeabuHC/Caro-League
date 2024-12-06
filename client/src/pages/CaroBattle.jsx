@@ -160,7 +160,7 @@ function CaroBattle() {
             seconds={isPlayerTurn ? remainingTime : turnDuration}
           />
         </div>
-        <div className="caro-table self-center bg-slate-300 my-4">
+        <div className="caro-table self-center my-4">
           {/* No move was made || Newest move */}
           {moveIndex === null ||
           moveIndex === gameObject.moveHistory.length - 1 ? (

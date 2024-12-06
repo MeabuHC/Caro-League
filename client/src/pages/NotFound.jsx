@@ -1,11 +1,15 @@
 import { Link } from "react-router-dom";
 import { HomeFilled } from "@ant-design/icons";
+import { useUserContext } from "../context/UserContext";
 
 export default function NotFound() {
+  const { user } = useUserContext();
+  const homeUrl = user ? "/home" : "/";
+
   return (
     <>
       <div className="h-screen bg-[#312E2B] flex items-center justify-center relative">
-        <Link to={"/"}>
+        <Link to={homeUrl}>
           <HomeFilled className="absolute top-[20px] left-[25px] text-[#989795] text-xl" />
         </Link>
         <div className="w-[600px] bg-[#272522] flex flex-col items-center justify-center p-6 gap-4 mt-5">
@@ -15,7 +19,7 @@ export default function NotFound() {
             </h1>
             <Link
               className="h-[40px] bg-[#3D3B39] hover:bg-[#3D3B39] text-[#C3C0C2] hover:text-[#E3E3E3] px-5 py-2 font-semibold rounded-lg"
-              to={"/"}
+              to={homeUrl}
             >
               Return Home
             </Link>

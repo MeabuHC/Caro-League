@@ -2,7 +2,7 @@
 import React from "react";
 import { Layout, Dropdown, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, replace, useNavigate } from "react-router-dom";
 import styles from "../styles/components/CustomHeader.module.css";
 import axios from "axios";
 import { useUserContext } from "../context/UserContext";
@@ -12,17 +12,21 @@ const baseUrl = import.meta.env.VITE_BASE_URL;
 const CustomHeader = () => {
   const { user, setUser, socket, setSocket } = useUserContext();
   const navigate = useNavigate();
+  const homeUrl = user ? "/home" : "/";
 
   //Handle logout button
   const handleLogout = async () => {
     try {
       await axios.post(`${baseUrl}/logout`, {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
       setUser(null);
       socket.disconnect();
       setSocket(null);
-      navigate("/");
-    } catch (error) {
-      console.error("Logout failed:", error);
+      navigate("/", {
+        replace: true,
+      });
     }
   };
 
@@ -47,7 +51,7 @@ const CustomHeader = () => {
   return (
     <Header className={styles.header}>
       <div className={styles.left}>
-        <Link to={"/"}>
+        <Link to={homeUrl}>
           {/* <img
             src="https://pro-theme.com/html/teamhost/assets/img/logo.png"
             alt="Logo"
@@ -75,15 +79,18 @@ const CustomHeader = () => {
           </Dropdown>
         ) : (
           <div className={styles.buttons}>
-            <Link to="/login">
-              <Button type="primary" className={styles.loginButton}>
-                Login
-              </Button>
+            <Link
+              to="/login"
+              className="h-[32px] bg-[#81B64C] hover:bg-[#A3D160] px-[16px] py-[8px] rounded-lg text-center text-white  hover:text-white flex items-center justify-center focus:outline-none transition-all duration-200"
+            >
+              Login
             </Link>
-            <Link to="/signup">
-              <Button type="default" className={styles.signupButton}>
-                Signup
-              </Button>
+
+            <Link
+              to="/signup"
+              className="h-[32px] bg-[#454341] hover:bg-[#686461] px-[16px] py-[8px] rounded-lg text-center text-[#C5C5C4] hover:text-[#f5f5f5] flex items-center justify-center focus:outline-none transition-all duration-200"
+            >
+              Signup
             </Link>
           </div>
         )}

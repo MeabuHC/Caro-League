@@ -1,9 +1,9 @@
 import React from "react";
 import CaroSquare from "./CaroSquare";
 
-function CaroTableSpectator({ moveHistory, pattern }) {
+function CaroTableSpectator({ moveHistory, pattern, size = "default" }) {
   const board = moveHistory.boardState;
-  const [moveX, moveY] = moveHistory.position;
+  const position = moveHistory.position;
   // Check if a cell is part of the winning pattern
   const isInWinningPattern = (i, y) => {
     return (
@@ -18,7 +18,7 @@ function CaroTableSpectator({ moveHistory, pattern }) {
     const rowCells = [];
     for (let y = 0; y < board[i].length; y++) {
       const isWinningCell = isInWinningPattern(i, y);
-      const isNewMove = i === moveX && y === moveY;
+      const isNewMove = position && i === position[0] && y === position[1];
       rowCells.push(
         <td
           key={`${i}-${y}`}
@@ -26,7 +26,7 @@ function CaroTableSpectator({ moveHistory, pattern }) {
             isNewMove ? "bg-amber-200" : isWinningCell ? "bg-green-100" : ""
           }`}
         >
-          <CaroSquare value={board[i][y]} isClickable={false} />
+          <CaroSquare value={board[i][y]} isClickable={false} size={size} />
         </td>
       );
     }
@@ -34,7 +34,7 @@ function CaroTableSpectator({ moveHistory, pattern }) {
   }
 
   return (
-    <table className="table-fixed mx-auto border border-black">
+    <table className="table-fixed border border-black bg-slate-300">
       <tbody>{table}</tbody>
     </table>
   );

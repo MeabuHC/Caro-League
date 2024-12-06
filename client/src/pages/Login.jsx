@@ -18,7 +18,7 @@ const Login = () => {
   //Navigate to home if user already login
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/home");
     }
   }, []);
 
@@ -80,7 +80,7 @@ const Login = () => {
 
       await delay(1000);
       setRefetch(true);
-      navigate("/");
+      navigate("/home");
     } catch (error) {
       // If fail
       setMessages({

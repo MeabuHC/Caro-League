@@ -16,12 +16,20 @@ export const UserProvider = ({ children }) => {
 
   const fetchUserData = async () => {
     setLoading(true);
+    console.log("Fetchhhh");
     try {
-      const response = await axiosWithRefreshToken(`/api/v1/users/me`);
+      const response = await axiosWithRefreshToken(
+        `/api/v1/users/me`,
+        "GET",
+        null,
+        {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        }
+      );
+      console.log(response);
       // console.log(response.data.data.user);
       setUser(response.data.data.user);
-      setRefetch(false); // Reset refetch after fetching
-
       //Establish socket
       if (!socket) {
         // Now create the socket connection
@@ -33,8 +41,9 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     } finally {
-      await delay(2000); // Visual
+      await delay(1500); // Visual
       setLoading(false);
+      setRefetch(false);
     }
   };
 
