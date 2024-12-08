@@ -12,6 +12,7 @@ class Game {
     caroNamespace,
     gameMap,
     mode = 0,
+    time = 10,
     isRematch = false
   ) {
     this.id = id;
@@ -24,7 +25,7 @@ class Game {
     this.turn = "X";
     this.symbols = new Map(); //UserId -> Symbols
     this.turnTimer = null;
-    this.turnDuration = 120;
+    this.turnDuration = time;
     this.remainingTime = this.turnDuration;
     this.gameResult = null;
     this.moveHistory = [];
@@ -53,8 +54,7 @@ class Game {
       player.socket = socket;
       socket.join(this.id);
 
-      //In case rematch reconnect
-      if (!this.isRematch || this.reconnectAttempt > 2) {
+      if (this.reconnectAttempt > 2) {
         this.addMessage(
           new Message(
             "notification",
@@ -87,7 +87,15 @@ class Game {
     let oldPlayer = this.players.has(player.userId._id.toString());
     if (!oldPlayer) {
       if (socket) {
-        console.log(socket.id + " joins: " + this.id);
+        console.log(
+          socket.id +
+            " joins: " +
+            this.id +
+            " config:" +
+            this.turnDuration +
+            " | " +
+            this.mode
+        );
         socket.join(this.id);
         socket.gameId = this.id; //Assign gameId to socket
         player.socket = socket;
@@ -102,15 +110,17 @@ class Game {
 
       if (this.state === "in-progress") {
         console.log(player.socket.id + " player is disconnected!");
-        this.addMessage(
-          new Message(
-            "notification",
-            null,
-            `${player.userId.username} is disconnected!`
-          )
-        );
+        if (!this.isRematch && this.reconnectAttempt >= 2) {
+          this.addMessage(
+            new Message(
+              "notification",
+              null,
+              `${player.userId.username} is disconnected!`
+            )
+          );
+        }
         player.socket = undefined;
-      } else if (this.state === "completed") {
+      } else if (this.state === "completed" || this.state === "waiting") {
         console.log(player?.socket?.id + " player left the room!");
         this.addMessage(
           new Message(
@@ -472,12 +482,12 @@ class Game {
       copyY--;
     }
 
-    if (this.mode === 0) {
+    if (this.mode == 0) {
       if (count != 5 || countBlockSide === 2) return null;
       else return sequence;
     }
 
-    if (this.mode === 1) {
+    if (this.mode == 1) {
       if (count < 5) {
         return null;
       } else return sequence;
@@ -516,13 +526,13 @@ class Game {
       count++;
     }
 
-    if (this.mode === 0) {
+    if (this.mode == 0) {
       if (count !== 5 || countBlockSide === 2)
         return null; // Traditional mode: must be exactly 5 and no blockage at both ends
       else return sequence; // Valid sequence
     }
 
-    if (this.mode === 1) {
+    if (this.mode == 1) {
       if (count < 5) return null; // Open mode: must be at least 5
       else return sequence; // Valid sequence
     }
@@ -564,13 +574,13 @@ class Game {
       count++;
     }
 
-    if (this.mode === 0) {
+    if (this.mode == 0) {
       if (count !== 5 || countBlockSide === 2)
         return null; // Traditional mode: must be exactly 5 and no blockage at both ends
       else return sequence; // Valid sequence
     }
 
-    if (this.mode === 1) {
+    if (this.mode == 1) {
       if (count < 5) return null; // Open mode: must be at least 5
       else return sequence; // Valid sequence
     }
@@ -612,13 +622,13 @@ class Game {
       count++;
     }
 
-    if (this.mode === 0) {
+    if (this.mode == 0) {
       if (count !== 5 || countBlockSide === 2)
         return null; // Traditional mode: must be exactly 5 and no blockage at both ends
       else return sequence; // Valid sequence
     }
 
-    if (this.mode === 1) {
+    if (this.mode == 1) {
       if (count < 5) return null; // Open mode: must be at least 5
       else return sequence; // Valid sequence
     }

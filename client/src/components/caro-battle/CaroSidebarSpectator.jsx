@@ -20,10 +20,10 @@ function CaroSidebarSpectator({
       className={`overflow-y-hidden h-full w-[450px] ${styles.caro_sidebar} flex flex-col`}
     >
       <div className="game-mode flex-1 flex flex-row items-center px-[15px] text-[#C3C2C1]">
-        <strong>{mode === 0 ? `Basic Mode` : `Open Mode`}</strong>
+        <strong>{mode == 0 ? `Basic Mode` : `Open Mode`}</strong>
         <Tooltip
           title={
-            mode === 0
+            mode == 0
               ? "Traditional Caro/Gomoku modes where exactly 5 in a row wins, but it must not be blocked on both sides."
               : "A mode where 5 or more stones in a row wins, regardless of being blocked on one or both sides."
           }

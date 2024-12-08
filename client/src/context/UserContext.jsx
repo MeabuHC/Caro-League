@@ -16,7 +16,6 @@ export const UserProvider = ({ children }) => {
 
   const fetchUserData = async () => {
     setLoading(true);
-    console.log("Fetchhhh");
     try {
       const response = await axiosWithRefreshToken(
         `/api/v1/users/me`,
@@ -27,7 +26,6 @@ export const UserProvider = ({ children }) => {
           Pragma: "no-cache",
         }
       );
-      console.log(response);
       // console.log(response.data.data.user);
       setUser(response.data.data.user);
       //Establish socket

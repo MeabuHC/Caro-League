@@ -67,7 +67,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px] p-0 select-none">
                     <Link
                       className="w-full h-full flex items-center justify-center text-center hover:text-current"
-                      to={`/caro/game/live/${element.gameId}`}
+                      to={`/play/game/live/${element.gameId}`}
                     >
                       {element.mode === 0 ? "Basic" : "Open"}
                     </Link>
@@ -76,7 +76,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px]">
                     <div className="w-full h-full text-center flex flex-row items-center hover:text-current relative">
                       <Link
-                        to={`/caro/game/live/${element.gameId}`}
+                        to={`/play/game/live/${element.gameId}`}
                         className="absolute top-0 left-0 w-full h-full z-[1]"
                       />
                       <div className="game-players h-[34px] flex flex-col items-start z-[2]">
@@ -126,7 +126,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px]">
                     <Link
                       className="w-full h-full text-center flex flex-row items-center hover:text-current"
-                      to={`/caro/game/live/${element.gameId}`}
+                      to={`/play/game/live/${element.gameId}`}
                     >
                       <div className="w-full h-full flex flex-row items-center justify-center">
                         {isXWinner != null ? (
@@ -169,7 +169,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px]">
                     <Link
                       className="w-full h-full flex items-center justify-center text-center hover:text-current"
-                      to={`/caro/game/live/${element.gameId}`}
+                      to={`/play/game/live/${element.gameId}`}
                     >
                       {element.totalMoves}
                     </Link>
@@ -178,7 +178,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px]">
                     <Link
                       className="w-full h-full flex items-center justify-end text-center hover:text-current pr-6"
-                      to={`/caro/game/live/${element.gameId}`}
+                      to={`/play/game/live/${element.gameId}`}
                     >
                       {formatDate(element.createdAt)}
                     </Link>
@@ -187,7 +187,7 @@ function ProfileGameHistory({ profileData }) {
                   <td className="h-[75px]">
                     <Link
                       className="w-full h-full flex flex-col items-center justify-center text-center hover:text-current"
-                      to={`/caro/game/live/${element.gameId}`}
+                      to={`/play/game/live/${element.gameId}`}
                     >
                       {isUserWinner != null && isUserWinner ? (
                         <>

@@ -12,7 +12,6 @@ import styles from "../styles/pages/CaroBattle.module.css";
 import CaroSidebar from "../components/caro-battle/CaroSidebar";
 import CaroTableSpectator from "../components/caro-battle/CaroTableSpectator";
 import delay from "../utils/delay";
-import LoadingSpin from "../components/LoadingSpin";
 
 function CaroBattle() {
   const { gameId } = useParams(); // Take gameId from param
@@ -47,7 +46,7 @@ function CaroBattle() {
         console.log(gameObj);
         if (!gameObj) {
           message.error(messageText);
-          navigate("/caro"); // If no game object, redirect
+          navigate("/play/online"); // If no game object, redirect
         }
         setGameObject((prevGameObject) => {
           // New move was made
@@ -115,7 +114,23 @@ function CaroBattle() {
 
   //Wait loading
   if (!gameObject) {
-    return <LoadingSpin />;
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#302E2B",
+        }}
+      >
+        <Spin
+          indicator={<LoadingOutlined spin />}
+          size="large"
+          style={{ color: "#9ECC5E" }}
+        />
+      </div>
+    );
   }
 
   // Taking out both user data

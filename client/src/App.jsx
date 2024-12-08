@@ -4,7 +4,6 @@ import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
 import Setup from "./pages/Setup";
 import GuestHome from "./pages/GuestHome";
-import CaroLobby from "./pages/CaroLobby";
 import Chats from "./pages/Chats";
 import LayoutWrapper from "./components/LayoutWrapper";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -14,7 +13,10 @@ import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
 import ProfileWrapper from "./pages/Profile";
 import UserHome from "./pages/UserHome";
-import CaroBattleComputer from "./pages/CaroBattleComputer";
+import CaroLobbyLayout from "./components/caro-lobby/CaroLobbyLayout";
+import CaroLobbyMainMenu from "./components/caro-lobby/CaroLobbyMainMenu";
+import CaroLobbyOnlineMenu from "./components/caro-lobby/CaroLobbyOnlineMenu";
+import CaroMatchmaking from "./components/caro-lobby/CaroMatchmaking";
 
 function App() {
   return (
@@ -45,26 +47,52 @@ function App() {
               }
             />
 
-            <Route path="caro/computer" element={<CaroBattleComputer />} />
-
-            <Route
-              path="caro"
-              element={
-                <CaroSocketProvider>
-                  <Outlet />
-                </CaroSocketProvider>
-              }
-            >
+            <Route path="/play" element={<CaroLobbyLayout />}>
               <Route
                 index
                 element={
                   <ProtectedRoute>
-                    <CaroLobby />
+                    <CaroLobbyMainMenu />
                   </ProtectedRoute>
                 }
               />
-              <Route path="game/live/:gameId" element={<CaroBattleWrapper />} />
+              <Route
+                path="online"
+                element={
+                  <ProtectedRoute>
+                    <CaroLobbyOnlineMenu />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="online/friend"
+                element={
+                  <ProtectedRoute>
+                    <CaroLobbyOnlineMenu />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="online/new"
+                element={
+                  <ProtectedRoute>
+                    <CaroSocketProvider>
+                      <CaroMatchmaking />
+                    </CaroSocketProvider>
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="computer" element={<CaroLobbyMainMenu />} />
             </Route>
+            <Route
+              path="play/game/live/:gameId"
+              element={
+                <CaroSocketProvider>
+                  <CaroBattleWrapper />
+                </CaroSocketProvider>
+              }
+            />
           </Route>
 
           <Route path="/login" element={<Login />} />

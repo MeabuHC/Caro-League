@@ -28,10 +28,10 @@ function CaroSidebar({
     >
       {/* Header */}
       <div className="game-mode flex-1 flex flex-row items-center px-[15px] text-[#C3C2C1]">
-        <strong>{gameObject.mode === 0 ? `Basic Mode` : `Open Mode`}</strong>
+        <strong>{gameObject.mode == 0 ? `Basic Mode` : `Open Mode`}</strong>
         <Tooltip
           title={
-            gameObject.mode === 0
+            gameObject.mode == 0
               ? "Traditional Caro/Gomoku modes where exactly 5 in a row wins, but it must not be blocked on both sides."
               : "A mode where 5 or more stones in a row wins, regardless of being blocked on one or both sides."
           }

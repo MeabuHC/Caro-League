@@ -34,7 +34,7 @@ function CaroResultModal({
 
       const handleNewGame = (newGameId) => {
         console.log("receive new-game" + newGameId);
-        navigate("/caro/game/live/" + newGameId);
+        navigate("/play/game/live/" + newGameId);
       };
 
       const handleDeclineRematch = () => {

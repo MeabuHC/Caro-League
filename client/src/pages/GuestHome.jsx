@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CaroTableSpectator from "../components/caro-battle/CaroTableSpectator";
 import cute_botSVG from "../assets/svg/cute-bot.svg";
 import banner from "../assets/images/fwc24_banner_index.4e29257c.jpg";
@@ -8,10 +8,16 @@ import { Link, replace, useNavigate } from "react-router-dom";
 export default function GuestHome() {
   const { user } = useUserContext();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) navigate("/home", { replace: true });
-  }, []);
+    else {
+      setLoading(false);
+    }
+  }, [user, navigate]);
+
+  if (loading) return null;
 
   return (
     <div className="bg-[#302E2B] w-full h-full max-h-full overflow-auto container">
@@ -61,7 +67,7 @@ export default function GuestHome() {
             </Link>
             {/* Play Bot Button */}
             <Link
-              to={"/caro/computer"}
+              to={"/play/computer"}
               className="w-[352px] h-[90px] bg-[#454341] hover:bg-[#454341] pt-[15px] pb-[20px] px-[24px] rounded-lg flex flex-row gap-3 text-[#C5C5C4] hover:text-[#E1E1E0] border-b-4 border-[rgba(0,0,0,0.1)] shadow-lg hover:shadow-[0_0_10px_2px_rgba(255,255,255,0.5)] transition-all duration-300"
             >
               <div className="button-icon w-[55px] h-full flex flex-row">

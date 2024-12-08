@@ -1,0 +1,11 @@
+.clock {
+  animation-name: clock;
+  animation-iteration-count: infinite;
+  animation-duration: 2s;
+}
+
+@keyframes clock {
+  50% {
+    opacity: 0.6;
+  }
+}

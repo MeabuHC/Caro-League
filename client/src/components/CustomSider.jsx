@@ -35,7 +35,7 @@ const CustomSider = () => {
       <HomeOutlined style={{ color: "white" }} />
     ),
     getItem(
-      <Link to={"/caro"} style={{ color: "white" }}>
+      <Link to={"/play"} style={{ color: "white" }}>
         Caro
       </Link>,
       "2",
@@ -56,9 +56,9 @@ const CustomSider = () => {
   ];
 
   const location = useLocation();
-  const selectedKey = items.find(
-    (item) => location.pathname === item.label.props?.to
-  )?.key;
+  const selectedKey = items.find((item) => {
+    return location.pathname.startsWith(item.label.props?.to);
+  })?.key;
 
   return (
     <Sider width={195} className={styles.sider} defaultCollapsed={true}>

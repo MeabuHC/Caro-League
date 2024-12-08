@@ -6,7 +6,6 @@ function CaroGameOverMessage({ gameObject }) {
   const result = gameObject.result;
   const { user } = useUserContext();
   const userStats = gameObject.players[user._id];
-  console.log(userStats);
 
   let text;
   switch (result.type) {
