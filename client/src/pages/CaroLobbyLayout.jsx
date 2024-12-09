@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import CaroPlayerCard from "../caro-battle/CaroPlayerCard";
-import CaroTimer from "../caro-battle/CaroTimer";
-import CaroTableSpectator from "../caro-battle/CaroTableSpectator";
-import { useUserContext } from "../../context/UserContext";
+import CaroPlayerCard from "../components/caro-battle/CaroPlayerCard";
+import CaroTimer from "../components/caro-battle/CaroTimer";
+import CaroTableSpectator from "../components/caro-battle/CaroTableSpectator";
+import { useUserContext } from "../context/UserContext";
 import { Spin, message } from "antd";
-import axiosWithRefreshToken from "../../utils/axiosWithRefreshToken";
+import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
 

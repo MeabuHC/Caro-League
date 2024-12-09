@@ -59,34 +59,6 @@ export const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-// export const uploadAvatar = catchAsync(async (req, res, next) => {
-//   if (!req.file) {
-//     return next(new AppError("No file uploaded", 400));
-//   }
-
-//   // Check if the file is an image by validating the MIME type
-//   if (!req.file.mimetype.startsWith("image/")) {
-//     return next(
-//       new AppError("Invalid file type. Please upload an image.", 400)
-//     );
-//   }
-
-//   const imageFilePath = req.file.path;
-//   const startIndex = imageFilePath.indexOf("img");
-//   const extractedPath = imageFilePath.substring(startIndex);
-
-//   //Update user avatarUrl
-//   await userDAO.updateUserById(req.user.id, {
-//     avatarUrl: extractedPath,
-//   });
-
-//   res.status(200).json({
-//     status: "success",
-//     message: "Avatar uploaded successfully!",
-//     avatarUrl: extractedPath,
-//   });
-// });
-
 export const uploadAvatar = catchAsync(async (req, res, next) => {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -127,5 +99,14 @@ export const uploadAvatar = catchAsync(async (req, res, next) => {
     status: "success",
     message: "Avatar uploaded successfully!",
     avatarUrl,
+  });
+});
+
+export const getAllOnlineFriendMe = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const data = await userDAO.getAllOnlineFriendById(user._id.toString());
+  res.status(200).json({
+    status: "success",
+    data: data,
   });
 });

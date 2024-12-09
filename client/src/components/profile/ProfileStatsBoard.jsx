@@ -1,8 +1,22 @@
 import React from "react";
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 
 function ProfileStatsBoard({ profileData }) {
+  if (!profileData) {
+    return (
+      <div className="season-stats rounded-md overflow-hidden h-[288px] bg-[#262522] flex items-center justify-center">
+        <Spin
+          indicator={<LoadingOutlined spin />}
+          size="large"
+          style={{ color: "#9ECC5E" }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="stats-board w-full bg-[#262522] rounded-md">
       <Link className="stats-board-header h-[48px] bg-[#262522] flex flex-row items-center mx-3 hover:text-white text-[#DFDEDE] border-b-2 border-solid border-[#3C3B39]">

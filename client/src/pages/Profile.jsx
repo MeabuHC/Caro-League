@@ -10,7 +10,7 @@ import ProfileGameHistory from "../components/profile/ProfileGameHistory";
 import { useNavigate, useParams } from "react-router-dom";
 import ProfileStatsBoard from "../components/profile/ProfileStatsBoard";
 import ProfileFriendsBoard from "../components/profile/ProfileFriendsBoard";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 
 export default function ProfileWrapper() {
@@ -37,7 +37,10 @@ function Profile() {
       } catch (error) {
         console.log(error);
         console.error("Error fetching profile data:", error);
-        navigate("/not-found");
+        if (error.message === "Network Error") {
+          message.error("Network Error!");
+          navigate("/");
+        } else navigate("/not-found");
       }
     };
 

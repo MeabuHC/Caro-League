@@ -42,9 +42,7 @@ const CustomSider = () => {
       <DesktopOutlined style={{ color: "white" }} />
     ),
     getItem(
-      <Link to={"/chats"} style={{ color: "white" }}>
-        Chats
-      </Link>,
+      <span style={{ color: "white" }}>Chats</span>,
       "3",
       <MessageOutlined style={{ color: "white" }} />
     ),

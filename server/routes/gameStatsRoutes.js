@@ -5,4 +5,6 @@ const router = express.Router();
 router
   .route("/me")
   .get(authController.protect, gameStatsController.getGameStatsMe);
+
+router.route("/top-10").get(gameStatsController.getTop10Season);
 export default router;

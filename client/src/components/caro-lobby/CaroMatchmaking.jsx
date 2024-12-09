@@ -6,6 +6,7 @@ import { useCaroSocket } from "../../context/CaroSocketContext";
 import { LoadingOutlined } from "@ant-design/icons";
 
 import { Spin, message } from "antd";
+import delay from "../../utils/delay";
 
 function CaroMatchmaking() {
   const [findingDots, setFindingDots] = useState("");
@@ -13,26 +14,33 @@ function CaroMatchmaking() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!socket) {
-      initializeConnection();
-    } else if (socket.connected) {
-      console.log(socket);
-      const handleNavigateGame = (gameId, errorText) => {
-        console.log("Navigate to: " + gameId);
+    const initSocket = async () => {
+      if (!socket) {
+        initializeConnection();
+      } else if (socket.connected) {
         console.log(socket);
-        console.log(socket.id + " from navigate game!");
-        if (errorText) message.error(errorText);
-        navigate("/play/game/live/" + gameId, { replace: true });
-      };
+        const handleNavigateGame = (gameId, errorText) => {
+          console.log("Navigate to: " + gameId);
+          console.log(socket);
+          console.log(socket.id + " from navigate game!");
+          if (errorText) message.error(errorText);
+          navigate("/play/game/live/" + gameId, { replace: true });
+        };
 
-      socket.on("navigate-game", handleNavigateGame);
-      socket.on("already-in-game", handleNavigateGame);
+        socket.on("navigate-game", handleNavigateGame);
+        socket.on("already-in-game", handleNavigateGame);
 
-      socket.emit("find-match-making", {
-        mode: modeValue,
-        time: timeValue,
-      });
-    }
+        await delay(2000); //UI purpose
+        console.log("Send find match signal!");
+
+        socket.emit("find-match-making", {
+          mode: modeValue,
+          time: timeValue,
+        });
+      }
+    };
+
+    initSocket();
   }, [socket?.connected]);
 
   //Disconnect socket if unmount

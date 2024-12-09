@@ -1,5 +1,6 @@
 import GameStats from "../models/gameStatsModel.js";
 import Ranking from "../models/rankingModel.js";
+import User from "../models/userModel.js";
 import rankingDAO from "./rankingDAO.js";
 import seasonDAO from "./seasonDAO.js";
 
@@ -29,6 +30,84 @@ class GameStatsDAO {
     return savedGameStats;
   }
 
+  async getTop10Leaderboard() {
+    const currentSeasonId = (await seasonDAO.getCurrentActiveSeason())._id;
+
+    console.log(currentSeasonId);
+
+    const leaderboard = await GameStats.aggregate([
+      {
+        $match: {
+          seasonId: currentSeasonId,
+        },
+      },
+      {
+        //Populate rank
+        $lookup: {
+          from: "rankings",
+          foreignField: "_id",
+          localField: "rankId",
+          as: "rankId",
+        },
+      },
+      {
+        $unwind: "$rankId",
+      },
+      {
+        $addFields: {
+          numericDivision: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$currentDivision", "I"] }, then: 1 },
+                { case: { $eq: ["$currentDivision", "II"] }, then: 2 },
+                { case: { $eq: ["$currentDivision", "III"] }, then: 3 },
+                { case: { $eq: ["$currentDivision", "IV"] }, then: 4 },
+              ],
+              default: 0,
+            },
+          },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "users",
+          foreignField: "_id",
+          localField: "userId",
+          as: "userId",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $ne: ["$role", "admin"],
+                },
+              },
+            },
+            {
+              $project: {
+                avatarUrl: 1,
+                username: 1,
+              },
+            },
+          ],
+        },
+      },
+      { $unwind: "$userId" },
+      {
+        $sort: {
+          "rankId.priority": -1,
+          numericDivision: 1,
+          lp: -1,
+        },
+      },
+      {
+        $limit: 10,
+      },
+    ]);
+
+    return leaderboard;
+  }
+
   // Update player stats after the match
   async updatePlayerStats(winnerStats, loserStats, status, lpChanges) {
     const winnerLpChanges = lpChanges.get(winnerStats.userId._id.toString());
@@ -43,7 +122,7 @@ class GameStatsDAO {
 
       loserStats.losses += 1;
       //Only derank if lp = 0
-      if (loserStats.lp !== 0 && loserStats.lp + lpChanges.lose < 0) {
+      if (loserStats.lp !== 0 && loserStats.lp + loserLpChanges.lose < 0) {
         loserStats.lp = 0;
       } else {
         loserStats.lp += loserLpChanges.lose;

@@ -2,6 +2,7 @@
 import User from "../models/userModel.js";
 import APIFeatures from "../utils/APIFeatures.js";
 import AppError from "../utils/appError.js";
+import redisClient from "../utils/redisClient.js";
 
 class UserDAO {
   async getAllUsers(queryObj) {
@@ -103,6 +104,27 @@ class UserDAO {
     }
 
     return { userAUpdate, userBUpdate };
+  }
+
+  async getAllOnlineFriendById(userId) {
+    const user = await this.getUserById(userId);
+    const friends = (await User.populate(user, "friends")).friends;
+
+    // Get all Redis keys for friends' statuses in one call
+    const friendIds = friends.map((friend) => `user:${friend._id}:status`);
+    const statuses = await redisClient.mGet(friendIds);
+
+    const onlineFriends = friends
+      .map((friend, index) => {
+        const status = JSON.parse(statuses[index]);
+        return {
+          friend,
+          onlineStatus: status?.online || false,
+        };
+      })
+      .filter((friend) => friend.onlineStatus);
+
+    return onlineFriends;
   }
 }
 

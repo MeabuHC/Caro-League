@@ -93,9 +93,11 @@ function ProfileGameHistory({ profileData }) {
                           </Link>
                           <span className="player-tier text-[#90908E]">
                             (
-                            {playerX.rankId.tier +
+                            {(
+                              playerX.rankId.tier +
                               " " +
-                              playerX.currentDivision}
+                              playerX.currentDivision
+                            ).trim()}
                             )
                           </span>
                         </div>

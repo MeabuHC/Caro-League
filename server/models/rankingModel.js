@@ -28,9 +28,16 @@ const rankingSchema = new mongoose.Schema({
   },
   nextRankTier: {
     type: String, // Store the name of the next rank tier (e.g., "Silver")
+    required: true,
   },
   previousRankTier: {
     type: String, // Store the name of the previous rank tier (e.g., "Bronze")
+    required: true,
+  },
+
+  priority: {
+    type: Number,
+    required: true,
   },
 });
 

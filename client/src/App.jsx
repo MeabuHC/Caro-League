@@ -13,7 +13,7 @@ import { CaroSocketProvider } from "./context/CaroSocketContext";
 import CaroBattleWrapper from "./pages/CaroBattleWrapper";
 import ProfileWrapper from "./pages/Profile";
 import UserHome from "./pages/UserHome";
-import CaroLobbyLayout from "./components/caro-lobby/CaroLobbyLayout";
+import CaroLobbyLayout from "./pages/CaroLobbyLayout";
 import CaroLobbyMainMenu from "./components/caro-lobby/CaroLobbyMainMenu";
 import CaroLobbyOnlineMenu from "./components/caro-lobby/CaroLobbyOnlineMenu";
 import CaroMatchmaking from "./components/caro-lobby/CaroMatchmaking";

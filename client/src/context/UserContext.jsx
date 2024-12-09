@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axiosWithRefreshToken from "../utils/axiosWithRefreshToken";
 import delay from "../utils/delay";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 import { io } from "socket.io-client";
 import { LoadingOutlined } from "@ant-design/icons";
 import LoadingSpin from "../components/LoadingSpin";
@@ -38,6 +38,7 @@ export const UserProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to fetch user data:", error);
+      if (error.message === "Network Error") message.error("Network Error!");
     } finally {
       await delay(1500); // Visual
       setLoading(false);

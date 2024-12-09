@@ -13,3 +13,12 @@ export const getGameStatsMe = catchAsync(async (req, res, next) => {
     data: gameStatsData,
   });
 });
+
+// Get top 10 season
+export const getTop10Season = catchAsync(async (req, res, next) => {
+  const data = await gameStatsDAO.getTop10Leaderboard();
+  res.status(200).json({
+    status: "success",
+    data: data,
+  });
+});

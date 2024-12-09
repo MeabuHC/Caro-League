@@ -23,6 +23,10 @@ router
     userController.uploadAvatar
   );
 
+router
+  .route("/me/online-friends")
+  .get(authController.protect, userController.getAllOnlineFriendMe);
+
 router.route("/:id").get(userController.getUser);
 
 export default router;
