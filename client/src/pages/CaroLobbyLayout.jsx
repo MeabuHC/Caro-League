@@ -14,7 +14,7 @@ function CaroLobbyLayout() {
   const navigate = useNavigate();
   const [selectedTime, setSelectedTime] = useState(10);
   const [selectedMode, setSelectedMode] = useState(0);
-  const isMatchMaking = location.pathname === "/play/online/new";
+  const isNewGame = location.pathname === "/play/online/new";
 
   function resetSelected() {
     setSelectedMode(0);
@@ -38,7 +38,7 @@ function CaroLobbyLayout() {
   }, []);
 
   useEffect(() => {
-    if (isMatchMaking) {
+    if (isNewGame) {
       const searchParams = new URLSearchParams(location.search);
       const timeValue = searchParams.get("time");
       const modeValue = searchParams.get("mode");
@@ -92,7 +92,7 @@ function CaroLobbyLayout() {
           <CaroTableSpectator moveHistory={{ boardState: createBoard() }} />
         </div>
         <div className="opponent-card self-start flex flex-row w-full items-center flex-1">
-          {isMatchMaking ? (
+          {isNewGame ? (
             <CaroPlayerCard type="matchmaking" />
           ) : (
             <CaroPlayerCard type="opponent" />

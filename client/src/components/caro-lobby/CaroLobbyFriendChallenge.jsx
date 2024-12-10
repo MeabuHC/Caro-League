@@ -6,7 +6,9 @@ import challengelink from "../../assets/svg/challengelink.svg";
 
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { LoadingOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
+import { useUserContext } from "../../context/UserContext";
+
 import delay from "../../utils/delay";
 
 function CaroLobbyFriendChallenge({ opponent }) {
@@ -17,6 +19,7 @@ function CaroLobbyFriendChallenge({ opponent }) {
   const [isModeOpen, setIsModeOpen] = useState(false);
   const { selectedTime, setSelectedTime, selectedMode, setSelectedMode } =
     useOutletContext();
+  const { user } = useUserContext();
 
   const navigate = useNavigate();
   const handleSelectTime = (time) => {
@@ -30,7 +33,9 @@ function CaroLobbyFriendChallenge({ opponent }) {
   };
 
   const handlePlayClick = () => {
-    navigate(`/play/online/new?time=${selectedTime}&mode=${selectedMode}`);
+    navigate(
+      `/play/online/new?action=challenge&opponent=${opponent}&time=${selectedTime}&mode=${selectedMode}`
+    );
   };
 
   useEffect(() => {
@@ -46,7 +51,14 @@ function CaroLobbyFriendChallenge({ opponent }) {
             Pragma: "no-cache",
           }
         );
-        setData(response.data.data.users[0]);
+
+        if (!response.data.data.users[0]) {
+          message.error("Player not existed!");
+          navigate(`/play/online/friend`);
+        } else if (opponent === user.username) {
+          message.error("You can't challenge yourself!");
+          navigate(`/play/online/friend`);
+        } else setData(response.data.data.users[0]);
         console.log(response.data.data.users[0]);
       } catch (error) {
         console.error(error);

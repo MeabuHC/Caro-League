@@ -79,7 +79,7 @@ function UserHome() {
 
         <div className="right-section flex flex-col gap-8 flex-1 pr-[40px]">
           <ProfileStatsBoard profileData={playerStats} />
-          <CaroTV />
+          {/* <CaroTV /> */}
         </div>
       </div>
     </div>

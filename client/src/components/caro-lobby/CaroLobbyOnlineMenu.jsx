@@ -14,8 +14,6 @@ function CaroLobbyOnlineMenu() {
     setTab(newTab);
   }, [location]);
 
-  console.log(tab);
-
   return (
     <div className="online-menu h-[100%] w-[450px] overflow-hidden flex flex-col">
       <div className="menu-content mt-3 my-5 bg-[#262522] h-full flex flex-col rounded-md overflow-hidden">

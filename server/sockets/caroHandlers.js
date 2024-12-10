@@ -9,6 +9,7 @@ import Message from "./message.js";
 import { v4 as uuidv4 } from "uuid";
 import seasonDAO from "../dao/seasonDAO.js";
 import userDAO from "../dao/userDAO.js";
+import redisClient from "../utils/redisClient.js";
 
 // Saving game
 let gameMap = new GameMap();
@@ -63,19 +64,6 @@ const Caro = {
       waitMatch(gameId, socket);
     }
   },
-
-  // leaveMatchMaking: (socket, gameId, userId) => {
-  //   const gameObj = gameMap.games.get(gameId);
-  //   if (gameObj && gameObj.players.has(userId)) {
-  //     gameObj.players.delete(userId);
-  //     if (gameObj.players.size === 0) {
-  //       gameMap.removeGame(gameObj);
-  //     }
-  //   }
-  //   console.log(socket.id + " leaves " + gameId);
-  //   socket.gameId = undefined;
-  //   socket.leave(gameId); //Leave the room socket
-  // },
 
   //Send game object to requester
   reconnectGame: (socket, gameId, userId) => {
@@ -280,11 +268,6 @@ const caroHandlers = async (socket, caroNamespace) => {
       ); //Refetch again
       Caro.findMatchMaking(socket, caroNamespace, playerStats, mode, time);
     });
-
-    //Handle cancel match-making
-    // socket.on("leave-match-making", async (gameId) => {
-    //   Caro.leaveMatchMaking(socket, gameId, userId);
-    // });
 
     //Handle sending game object
     socket.on("reconnect-game", (gameId) => {

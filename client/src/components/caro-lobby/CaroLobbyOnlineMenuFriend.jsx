@@ -12,8 +12,6 @@ function CaroLobbyOnlineMenuFriend() {
   const searchParams = new URLSearchParams(location.search);
   const opponent = searchParams.get("opponent");
 
-  console.log(location);
-
   return (
     <>
       <div className="header h-[28px] flex flex-row justify-center items-center relative mt-7">

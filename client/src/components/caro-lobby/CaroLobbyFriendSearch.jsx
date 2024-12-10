@@ -32,7 +32,6 @@ function CaroLobbyFriendSearch() {
           }
         );
         setData(response.data.data);
-        console.log(response.data.data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -42,6 +41,14 @@ function CaroLobbyFriendSearch() {
 
     fetchData();
   }, []);
+
+  if (data) {
+    var searchData = data.filter((element) =>
+      element.friend.username
+        .toLowerCase()
+        .startsWith(searchValue.toLowerCase())
+    );
+  }
 
   return (
     <div className="body mt-6 flex flex-col flex-1">
@@ -77,27 +84,30 @@ function CaroLobbyFriendSearch() {
                 Online Friends
               </span>
               <span className="inline-block bg-[#3C3B39] text-[#C9C8C8] rounded-md text-center select-none py-[0.1rem] px-[0.4rem]">
-                {(data && data.length) || 0}
+                {(searchData && searchData.length) || 0}
               </span>
             </div>
-            {data &&
-              data.map((friend) => {
-                return (
-                  <Link
-                    to={`/play/online/friend?opponent=${friend.friend.username}`}
-                    className="friend-row flex flex-row my-2 w-full items-center"
-                    key={friend.friend._id}
-                  >
-                    <img
-                      src={friend.friend.avatarUrl}
-                      className="w-8 h-8 mr-3"
-                    />
-                    <span className="text-[#DFDEDE] hover:text-[#FFFFFF]">
-                      {friend.friend.username}
-                    </span>
-                  </Link>
-                );
-              })}
+
+            <div className="list-content max-h-[168px] overflow-y-auto">
+              {searchData &&
+                searchData.map((friend) => {
+                  return (
+                    <Link
+                      to={`/play/online/friend?opponent=${friend.friend.username}`}
+                      className="friend-row flex flex-row my-2 w-full items-center"
+                      key={friend.friend._id}
+                    >
+                      <img
+                        src={friend.friend.avatarUrl}
+                        className="w-8 h-8 mr-3"
+                      />
+                      <span className="text-[#DFDEDE] hover:text-[#FFFFFF]">
+                        {friend.friend.username}
+                      </span>
+                    </Link>
+                  );
+                })}
+            </div>
           </>
         )}
       </div>

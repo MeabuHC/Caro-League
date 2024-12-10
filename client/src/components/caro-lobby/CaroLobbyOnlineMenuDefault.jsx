@@ -23,7 +23,9 @@ function CaroLobbyOnlineMenuDefault() {
   };
 
   const handlePlayClick = () => {
-    navigate(`/play/online/new?time=${selectedTime}&mode=${selectedMode}`);
+    navigate(
+      `/play/online/new?action=matchmaking&time=${selectedTime}&mode=${selectedMode}`
+    );
   };
 
   const timeOptions = [
