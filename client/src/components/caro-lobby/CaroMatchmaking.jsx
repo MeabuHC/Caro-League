@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, replace, useLocation, useNavigate } from "react-router-dom";
 import clock from "../../assets/svg/rapid.svg";
 import styles from "../../styles/components/CaroMatchMaking.module.css";
 import { useCaroSocket } from "../../context/CaroSocketContext";
@@ -16,12 +16,13 @@ function CaroMatchmaking() {
   const { socket, initializeConnection, disconnectSocket } = useCaroSocket();
   const searchParams = new URLSearchParams(location.search);
   const actionValue = searchParams.get("action");
-  const validActions = ["matchmaking", "challenge"];
+  const validActions = ["matchmaking", "challenge", "accept-challenge"];
   const isValidAction = validActions.includes(actionValue);
   const { user, socket: userSocket } = useUserContext();
 
   const opponentValue =
-    actionValue === "challenge" && searchParams.get("opponent");
+    (actionValue === "challenge" || actionValue === "accept-challenge") &&
+    searchParams.get("opponent");
   const navigate = useNavigate();
 
   if (!isValidAction) {
@@ -65,10 +66,10 @@ function CaroMatchmaking() {
 
         if (!response.data.data.users[0]) {
           message.error("Player not existed!");
-          navigate(`/play/online/friend`);
+          navigate(`/play/online/friend`, { replace: true });
         } else if (opponentValue === user.username) {
           message.error("You can't challenge yourself!");
-          navigate(`/play/online/friend`);
+          navigate(`/play/online/friend`, { replace: true });
         } else setOpponentData(response.data.data.users[0]);
         console.log(response.data.data.users[0]);
       } catch (error) {
@@ -77,7 +78,8 @@ function CaroMatchmaking() {
       }
     };
 
-    if (actionValue === "challenge") fetchData();
+    if (actionValue === "challenge" || actionValue === "accept-challenge")
+      fetchData();
   }, []);
 
   //For matchmaking
@@ -86,7 +88,6 @@ function CaroMatchmaking() {
       if (!socket) {
         initializeConnection();
       } else if (socket.connected) {
-        console.log(socket);
         const handleNavigateGame = (gameId, errorText) => {
           console.log("Navigate to: " + gameId);
           console.log(socket);
@@ -95,29 +96,48 @@ function CaroMatchmaking() {
           navigate("/play/game/live/" + gameId, { replace: true });
         };
 
+        const handleError = (errorText) => {
+          message.error(errorText);
+          navigate("/play/online");
+        };
+
         socket.on("navigate-game", handleNavigateGame);
         socket.on("already-in-game", handleNavigateGame);
+        socket.on("error", handleError);
 
-        await delay(1000); //UI purpose
+        const handleDeclinedChallengeRequest = () => {
+          message.info(opponentValue + " declined your request!");
+          navigate("/play/online/friend");
+        };
+
+        userSocket.on(
+          "declined-challenge-request",
+          handleDeclinedChallengeRequest
+        );
 
         if (actionValue === "matchmaking") {
           console.log("Send find match signal!");
+
           socket.emit("find-match-making", {
             mode: modeValue,
             time: timeValue,
           });
+        } else if (actionValue === "accept-challenge") {
+          console.log("Send accept-challenge signal!");
+          socket.emit("accept-challenge-request", opponentData._id.toString());
         } else if (actionValue === "challenge") {
           console.log("Send challenge request!");
+          console.log(socket);
           userSocket.emit("send-challenge-request", {
             sender: user.username,
             receiver: opponentValue,
             time: timeValue,
             mode: modeValue,
+            senderSocketId: socket.id,
           });
         }
       }
     };
-
     initSocket();
   }, [socket?.connected]);
 
@@ -136,6 +156,7 @@ function CaroMatchmaking() {
   useEffect(() => {
     return () => {
       if (actionValue === "challenge") {
+        userSocket.off("declined-challenge-request");
         userSocket.emit("cancel-challenge-request");
       }
     };
@@ -156,7 +177,7 @@ function CaroMatchmaking() {
       {socket?.connected === true ? (
         <>
           <div className="menu-header h-[56px] w-full text-[#C3C2C1] flex flex-row items-center border-b-2 border-[hsla(0,0%,100%,.1)]">
-            {actionValue === "challenge" && opponentData ? (
+            {actionValue != "matchmaking" && opponentData ? (
               <span className="ml-5">{`Waiting for opponent${findingDots}`}</span>
             ) : (
               <span className="ml-5">{`Finding${findingDots}`}</span>
@@ -166,7 +187,7 @@ function CaroMatchmaking() {
             <div className="finding-board w-[280px] px-[40px] pt-[40px] flex flex-col bg-[#1E1F1A] rounded-md">
               <img
                 src={
-                  actionValue === "challenge" && opponentData
+                  actionValue != "matchmaking" && opponentData
                     ? opponentData.avatarUrl
                     : clock
                 }

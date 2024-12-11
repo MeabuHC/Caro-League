@@ -20,8 +20,8 @@ import CaroMatchmaking from "./components/caro-lobby/CaroMatchmaking";
 
 function App() {
   return (
-    <UserProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <UserProvider>
         <Routes>
           {/* Same Layout Route */}
           <Route path="/" element={<LayoutWrapper />}>
@@ -100,8 +100,8 @@ function App() {
           <Route path="/verify-email/:token" element={<Setup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </UserProvider>
+      </UserProvider>
+    </BrowserRouter>
   );
 }
 

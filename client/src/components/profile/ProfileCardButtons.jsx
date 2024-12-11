@@ -14,6 +14,7 @@ import {
 import Modal from "antd/es/modal/Modal.js";
 import styles from "../../styles/components/ProfileCardButtons.module.css";
 import { message } from "antd";
+import { Link } from "react-router-dom";
 
 function ProfileCardButtons({ profileData }) {
   const [friendStatus, setFriendStatus] = useState(null);
@@ -180,9 +181,12 @@ function ProfileCardButtons({ profileData }) {
               <UserDeleteOutlined className="text-[20px]" /> Remove Friend
             </button>
           )}
-          <button className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2">
+          <Link
+            to={`/play/online/friend?opponent=${profileData?.userId.username}`}
+            className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2 hover:text-current"
+          >
             <PlusCircleOutlined className="text-[20px]" /> Challenge
-          </button>
+          </Link>
           <button className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2">
             <MessageOutlined className="text-[20px]" /> Message
           </button>

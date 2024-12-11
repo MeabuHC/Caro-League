@@ -27,6 +27,10 @@ router
   .route("/me/online-friends")
   .get(authController.protect, userController.getAllOnlineFriendMe);
 
+router
+  .route("/me/challenges")
+  .get(authController.protect, userController.getAllIncomingChallengeMe);
+
 router.route("/:id").get(userController.getUser);
 
 export default router;

@@ -110,3 +110,12 @@ export const getAllOnlineFriendMe = catchAsync(async (req, res, next) => {
     data: data,
   });
 });
+
+export const getAllIncomingChallengeMe = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const data = await userDAO.getAllIncomingChallengeById(user._id.toString());
+  res.status(200).json({
+    status: "success",
+    data: data,
+  });
+});

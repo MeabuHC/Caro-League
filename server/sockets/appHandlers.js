@@ -43,13 +43,24 @@ const AppHandlers = {
       // Save challenge request to Redis
       const incomingChallengesKey = `user:${receiverId}:incoming_challenges`;
 
-      const challengeData = JSON.stringify({
-        sender: senderId,
-        receiver: receiverId,
+      const challengeDataObject = {
+        sender: {
+          id: senderId,
+          username: sender.username,
+          avatarUrl: sender.avatarUrl,
+          socketId: request.senderSocketId,
+        },
+        receiver: {
+          id: receiverId,
+          username: receiver.username,
+          avatarUrl: receiver.avatarUrl,
+        },
         time: request.time,
         mode: request.mode,
         createdAt: Date.now(),
-      });
+      };
+
+      const challengeData = JSON.stringify(challengeDataObject);
 
       // Save to incoming challenges for the receiver
       await redisClient.sAdd(incomingChallengesKey, challengeData);
@@ -65,17 +76,12 @@ const AppHandlers = {
       console.log(activeSockets);
 
       //Make new request with more details
-      const newRequest = {
-        sender: sender,
-        receiver: receiver,
-        time: request.time,
-        mode: request.mode,
-        createdAt: Date.now(),
-      };
 
       activeSockets.forEach((socketId) => {
         console.log("Emit to socket!");
-        appNamespace.to(socketId).emit("receive-challenge-request", newRequest);
+        appNamespace
+          .to(socketId)
+          .emit("receive-challenge-request", challengeDataObject);
       });
     } else {
       console.log("Receiver or sender not found.");
@@ -96,7 +102,7 @@ const AppHandlers = {
       const challengeDataObject = JSON.parse(challengeData);
 
       // Remove the challenge from both the sender's outgoing challenge and the receiver's incoming challenges
-      const incomingChallengesKey = `user:${challengeDataObject.receiver}:incoming_challenges`;
+      const incomingChallengesKey = `user:${challengeDataObject.receiver.id}:incoming_challenges`;
 
       // Delete the challenge from the outgoing key
       await redisClient.del(outgoingChallengesKey);
@@ -107,7 +113,7 @@ const AppHandlers = {
       console.log("Challenge request canceled and removed from Redis.");
 
       // Notify the receiver's active sockets about the canceled challenge
-      const activeSocketsKey = `user:${challengeDataObject.receiver}:active_sockets`;
+      const activeSocketsKey = `user:${challengeDataObject.receiver.id}:active_sockets`;
       const activeSockets = await redisClient.sMembers(activeSocketsKey);
 
       // Emit to each socket of the receiver
@@ -124,6 +130,32 @@ const AppHandlers = {
     } catch (error) {
       console.error("Error canceling challenge request:", error);
     }
+  },
+
+  handleDeclineChallengeRequest: async (socket, appNamespace, challengeObj) => {
+    const outgoingChallengesKey = `user:${challengeObj.sender.id}:outgoing_challenge`;
+    const incomingChallengesKey = `user:${challengeObj.receiver.id}:incoming_challenges`;
+
+    // Delete the challenge from the outgoing key
+    await redisClient.del(outgoingChallengesKey);
+
+    // Remove from the receiver's incoming challenges
+    await redisClient.sRem(incomingChallengesKey, JSON.stringify(challengeObj));
+
+    console.log("Declined challenge!!!");
+
+    // Notify the sender's active sockets about the canceled challenge
+    const activeSocketsKey = `user:${challengeObj.sender.id}:active_sockets`;
+    const activeSockets = await redisClient.sMembers(activeSocketsKey);
+
+    console.log(activeSockets);
+
+    activeSockets.forEach((socketId) => {
+      console.log(socketId);
+      appNamespace.to(socketId).emit("declined-challenge-request");
+      appNamespace.to(socketId).emit("lmao");
+      appNamespace.to(socketId).emit("custom");
+    });
   },
 
   disconnect: async (socket, appNamespace, user) => {
@@ -204,14 +236,23 @@ const appHandlers = async (socket, appNamespace) => {
       last_active: Date.now(),
     });
 
-    //Handle challenge request
+    //Handle send challenge request
     socket.on("send-challenge-request", (request) => {
       AppHandlers.handleSendChallengeRequest(appNamespace, request);
     });
 
-    //Handle challenge request
+    //Handle cancel challenge request
     socket.on("cancel-challenge-request", () => {
       AppHandlers.handleCancelChallengeRequest(socket, appNamespace, userId);
+    });
+
+    //Handle declined challenge request
+    socket.on("decline-challenge-request", (challengeObj) => {
+      AppHandlers.handleDeclineChallengeRequest(
+        socket,
+        appNamespace,
+        challengeObj
+      );
     });
 
     // Handle disconnect

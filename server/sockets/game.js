@@ -82,7 +82,7 @@ class Game {
         .emit("receive-game-object", this.toObject());
   }
 
-  addPlayer(socket, player) {
+  addPlayer(socket = null, player) {
     //If this players is not inside the room
     let oldPlayer = this.players.has(player.userId._id.toString());
     if (!oldPlayer) {

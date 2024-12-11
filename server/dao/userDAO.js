@@ -126,6 +126,13 @@ class UserDAO {
 
     return onlineFriends;
   }
+
+  async getAllIncomingChallengeById(userId) {
+    const incomingChallengesKey = `user:${userId}:incoming_challenges`;
+    const incomingChallenges = redisClient.sMembers(incomingChallengesKey);
+
+    return incomingChallenges;
+  }
 }
 
 export default new UserDAO();

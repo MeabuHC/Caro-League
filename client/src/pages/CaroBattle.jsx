@@ -35,8 +35,6 @@ function CaroBattle() {
 
       if (gameId && socket) {
         await delay(100); // Delay for connection
-        console.log(socket.id + " currently!");
-        console.log(socket);
         console.log("Reconnect game request!");
         socket.emit("reconnect-game", gameId);
       }
@@ -46,7 +44,7 @@ function CaroBattle() {
         console.log(gameObj);
         if (!gameObj) {
           message.error(messageText);
-          navigate("/play/online"); // If no game object, redirect
+          navigate("/play/online", { replace: true }); // If no game object, redirect
         }
         setGameObject((prevGameObject) => {
           // New move was made

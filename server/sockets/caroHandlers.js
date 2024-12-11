@@ -173,6 +173,80 @@ const Caro = {
       // Additional error handling can be added here
     }
   },
+
+  handleAcceptChallengeRequest: async (
+    socket,
+    caroNamespace,
+    receiverId,
+    senderId
+  ) => {
+    console.log("Accept Challengeeeeeeeeeeeeeeeee");
+    const outgoingChallengesKey = `user:${senderId}:outgoing_challenge`;
+    const existingChallenge = await redisClient.get(outgoingChallengesKey);
+
+    //If sender has any exist challenge
+    if (!existingChallenge) {
+      socket.emit("error", "Request not existed!");
+      return;
+    } else {
+      const existingChallengeObject = JSON.parse(existingChallenge);
+
+      //Check identification of receiver
+      console.log(existingChallengeObject);
+      if (receiverId != existingChallengeObject.receiver.id) {
+        socket.emit("error", "Request not existed!");
+        return;
+      }
+
+      //Check if receiver is in a game
+      const currentGame = gameMap.getInProgressGameByUserId(receiverId);
+      if (currentGame) {
+        socket.emit(
+          "already-in-game",
+          currentGame.id,
+          "You can't start a game while you're in a match."
+        );
+        return;
+      }
+
+      //Create new game
+      const uniqueId = await createUniqueGameId(caroNamespace);
+      const seasonId = (
+        await seasonDAO.getCurrentActiveSeason()
+      )._id.toString();
+      const newGame = new Game(
+        uniqueId,
+        seasonId,
+        caroNamespace,
+        gameMap,
+        existingChallengeObject.mode,
+        existingChallengeObject.time
+      );
+
+      const receiverStats =
+        await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(receiverId);
+      const senderStats =
+        await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(senderId);
+
+      newGame.addPlayer(null, receiverStats),
+        newGame.addPlayer(null, senderStats);
+
+      gameMap.addGame(newGame);
+
+      newGame.startGame();
+
+      console.log("Challenge game id: ");
+      console.log(newGame.id);
+
+      caroNamespace
+        .to(existingChallengeObject.sender.socketId)
+        .emit("navigate-game", newGame.id);
+      caroNamespace.to(socket.id).emit("navigate-game", newGame.id);
+
+      console.log(existingChallengeObject);
+      //Send to both player
+    }
+  },
 };
 
 //---------- UTILS ------------------//
@@ -308,6 +382,16 @@ const caroHandlers = async (socket, caroNamespace) => {
     // Handle accept rematch request
     socket.on("accept-rematch-request", (gameId) => {
       Caro.handleAcceptRematchRequest(caroNamespace, gameId);
+    });
+
+    //Handle accept challenge request
+    socket.on("accept-challenge-request", (senderId) => {
+      Caro.handleAcceptChallengeRequest(
+        socket,
+        caroNamespace,
+        userId,
+        senderId
+      );
     });
 
     // Handle socket disconnection
