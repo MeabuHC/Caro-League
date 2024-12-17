@@ -11,7 +11,7 @@ function CaroGameMessage({ messageObj, isSender = false, hideSender = false }) {
             isSender ? "text-[#F7C631]" : ""
           } font-bold`}
         >
-          {messageObj.sender}:{" "}
+          {messageObj.sender && `${messageObj.sender}: `}
         </Link>
       )}
       <span className="break-words hyphens-auto">{messageObj.message}</span>

@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, replace, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  replace,
+  useLocation,
+  useNavigate,
+  useOutletContext,
+} from "react-router-dom";
 import clock from "../../assets/svg/rapid.svg";
 import styles from "../../styles/components/CaroMatchMaking.module.css";
 import { useCaroSocket } from "../../context/CaroSocketContext";
@@ -19,6 +25,8 @@ function CaroMatchmaking() {
   const validActions = ["matchmaking", "challenge", "accept-challenge"];
   const isValidAction = validActions.includes(actionValue);
   const { user, socket: userSocket } = useUserContext();
+  const { selectedTime, setSelectedTime, selectedMode, setSelectedMode } =
+    useOutletContext();
 
   const opponentValue =
     (actionValue === "challenge" || actionValue === "accept-challenge") &&
@@ -98,6 +106,8 @@ function CaroMatchmaking() {
 
         const handleError = (errorText) => {
           message.error(errorText);
+          setSelectedMode(0);
+          setSelectedTime(10);
           navigate("/play/online");
         };
 

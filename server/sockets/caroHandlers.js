@@ -47,7 +47,14 @@ const Caro = {
       const seasonId = (
         await seasonDAO.getCurrentActiveSeason()
       )._id.toString();
-      game = new Game(gameId, seasonId, caroNamespace, gameMap, mode, time);
+      //Wrong parameters
+      try {
+        game = new Game(gameId, seasonId, caroNamespace, gameMap, mode, time);
+      } catch (error) {
+        console.log("Just an error!");
+        socket.emit("error", error.message);
+        return;
+      }
       gameMap.addGame(game);
     }
 

@@ -87,7 +87,7 @@ function ChallengeBox({ challengeList, setChallengeList, socket }) {
 
         {openChallenge && (
           <div
-            className="challenge-box w-[420px] max-h-[186px] absolute bottom-[100%] right-0 z-10 transition-all duration-300 ease-in-out cursor-default rounded-t-md rounded-bl-md overflow-hidden"
+            className="challenge-box w-[420px] absolute bottom-[100%] right-0 z-10 transition-all duration-300 ease-in-out cursor-default rounded-t-md rounded-bl-md overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="box-header h-[42px] bg-[#4C4847] border-b-2 border-[hsla(0,0%,100%,.1)] flex flex-row items-center">
@@ -108,57 +108,59 @@ function ChallengeBox({ challengeList, setChallengeList, socket }) {
               )}
             </div>
 
-            {challengeList && challengeList.length > 0 ? (
-              challengeList.map((challenge, index) => {
-                const selectedTimeLabel =
-                  timeOptions.find((option) => option.value == challenge.time)
-                    ?.label || "Select time";
+            <div className="max-h-[144px] overflow-y-auto">
+              {challengeList && challengeList.length > 0 ? (
+                challengeList.map((challenge, index) => {
+                  const selectedTimeLabel =
+                    timeOptions.find((option) => option.value == challenge.time)
+                      ?.label || "Select time";
 
-                const selectedModeLabel =
-                  modeOptions.find((option) => option.value == challenge.mode)
-                    ?.label || "Select mode";
+                  const selectedModeLabel =
+                    modeOptions.find((option) => option.value == challenge.mode)
+                      ?.label || "Select mode";
 
-                return (
-                  <div
-                    key={index}
-                    className="challenge-item w-full h-[72px] flex flex-row bg-[#4C4847]"
-                  >
-                    <img
-                      src={challenge.sender.avatarUrl}
-                      alt={`${challenge.sender.username}'s avatar`}
-                      className="h-full w-[72px]"
-                    />
-                    <div className="challenge-text w-[226px] text-left flex items-center px-3 py-3">
-                      <p className="text-[#E3E1E0]">
-                        <span className="text-white inline font-bold">
-                          {challenge.sender.username}
-                        </span>{" "}
-                        wants to play ({selectedTimeLabel} | {selectedModeLabel}
-                        )
-                      </p>
-                    </div>
-                    <div className="buttons w-[122px] flex flex-row items-center justify-center gap-3">
-                      <div
-                        className="decline-request w-[40px] h-[40px] bg-[#5C5B59] hover:bg-[#2a2a28] hover:text-[#E2E2E1] rounded-lg font-caroFont text-[#BAB8B7] flex flex-row items-center justify-center cursor-pointer"
-                        onClick={() => handleDeclineRequest(challenge)}
-                      >
-                        X
+                  return (
+                    <div
+                      key={index}
+                      className="challenge-item w-full h-[72px] flex flex-row bg-[#4C4847]"
+                    >
+                      <img
+                        src={challenge.sender.avatarUrl}
+                        alt={`${challenge.sender.username}'s avatar`}
+                        className="h-full w-[72px]"
+                      />
+                      <div className="challenge-text w-[226px] text-left flex items-center px-3 py-3">
+                        <p className="text-[#E3E1E0]">
+                          <span className="text-white inline font-bold">
+                            {challenge.sender.username}
+                          </span>{" "}
+                          wants to play ({selectedTimeLabel} |{" "}
+                          {selectedModeLabel})
+                        </p>
                       </div>
-                      <button
-                        className="accept-request w-[40px] h-[40px] bg-[#81B64C] hover:bg-[#9DCB5E] rounded-lg text-lg font-bold text-[white] flex flex-row items-center justify-center cursor-pointer"
-                        onClick={() => handleAcceptRequest(challenge)}
-                      >
-                        <CheckOutlined />
-                      </button>
+                      <div className="buttons w-[122px] flex flex-row items-center justify-center gap-3">
+                        <div
+                          className="decline-request w-[40px] h-[40px] bg-[#5C5B59] hover:bg-[#2a2a28] hover:text-[#E2E2E1] rounded-lg font-caroFont text-[#BAB8B7] flex flex-row items-center justify-center cursor-pointer"
+                          onClick={() => handleDeclineRequest(challenge)}
+                        >
+                          X
+                        </div>
+                        <button
+                          className="accept-request w-[40px] h-[40px] bg-[#81B64C] hover:bg-[#9DCB5E] rounded-lg text-lg font-bold text-[white] flex flex-row items-center justify-center cursor-pointer"
+                          onClick={() => handleAcceptRequest(challenge)}
+                        >
+                          <CheckOutlined />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="no-challenge w-full h-[72px] flex flex-row items-center justify-center bg-[#4C4847] text-[#E3E1E0]">
-                No challenge requests available yet.
-              </div>
-            )}
+                  );
+                })
+              ) : (
+                <div className="no-challenge w-full h-[72px] flex flex-row items-center justify-center bg-[#4C4847] text-[#E3E1E0]">
+                  No challenge requests available yet.
+                </div>
+              )}
+            </div>
           </div>
         )}
       </button>

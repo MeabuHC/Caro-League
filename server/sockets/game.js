@@ -1,6 +1,7 @@
 import gameHistoryDAO from "../dao/gameHistoryDAO.js";
 import GameStatsDAO from "../dao/gameStatsDAO.js";
 import seasonDAO from "../dao/seasonDAO.js";
+import AppError from "../utils/appError.js";
 import Message from "./message.js";
 
 const rows = 15;
@@ -15,6 +16,7 @@ class Game {
     time = 10,
     isRematch = false
   ) {
+    this.validateGameOptions({ mode, time });
     this.id = id;
     this.mode = mode; //0: basic, 1: open
     this.seasonId = seasonId;
@@ -35,6 +37,23 @@ class Game {
     this.messages = new Array();
     this.isRematch = isRematch;
     this.reconnectAttempt = 0; //Reconnect if rematch, if > 2 real disconnect
+  }
+
+  validateGameOptions({ mode, time }) {
+    const validModes = ["0", "1"];
+    const validTimes = ["10", "30", "60"];
+
+    if (!validModes.includes(mode)) {
+      throw new Error(
+        `Invalid mode: ${mode}. Mode must be one of ${validModes.join(", ")}.`
+      );
+    }
+
+    if (!validTimes.includes(time)) {
+      throw new Error(
+        `Invalid time: ${time}. Time must be one of ${validTimes.join(", ")}.`
+      );
+    }
   }
 
   initializeBoard() {
