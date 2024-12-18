@@ -11,6 +11,7 @@ import gameHistoryRoutes from "./routes/gameHistoryRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import friendRequestRoutes from "./routes/friendRequestRoutes.js";
 import gameStatsRoutes from "./routes/gameStatsRoutes.js";
+import conversationRoutes from "./routes/conversationRoutes.js";
 import errorController from "./controllers/errorController.js";
 
 const app = new express();
@@ -49,6 +50,7 @@ app.use("/api/v1/games", gameHistoryRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/friend-requests", friendRequestRoutes);
 app.use("/api/v1/game-stats", gameStatsRoutes);
+app.use("/api/v1/conversations", conversationRoutes);
 
 //Handle undefined route
 app.all("*", (req, res, next) => {

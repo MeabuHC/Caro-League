@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Signup from "./pages/Signup";
@@ -17,6 +17,8 @@ import CaroLobbyLayout from "./pages/CaroLobbyLayout";
 import CaroLobbyMainMenu from "./components/caro-lobby/CaroLobbyMainMenu";
 import CaroLobbyOnlineMenu from "./components/caro-lobby/CaroLobbyOnlineMenu";
 import CaroMatchmaking from "./components/caro-lobby/CaroMatchmaking";
+import ChatBody from "./components/chats/ChatBody";
+import ChatBodyEmpty from "./components/chats/ChatBodyEmpty";
 
 function App() {
   return (
@@ -37,7 +39,11 @@ function App() {
                   <Chats />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<ChatBodyEmpty />} />
+              <Route path=":id" element={<ChatBody />} />
+            </Route>
+
             <Route
               path="settings"
               element={

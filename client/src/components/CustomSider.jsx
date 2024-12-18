@@ -48,11 +48,6 @@ const CustomSider = () => {
       "3",
       <MessageOutlined style={{ color: "white" }} />
     ),
-    getItem(
-      <span style={{ color: "white" }}>Friends</span>,
-      "4",
-      <TeamOutlined style={{ color: "white" }} />
-    ),
   ];
 
   const location = useLocation();

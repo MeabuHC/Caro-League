@@ -140,13 +140,13 @@ export const UserProvider = ({ children }) => {
       {children}
 
       {/* Challenge Box */}
-      {user && (
+      {/* {user && (
         <ChallengeBox
           challengeList={challengeList}
           setChallengeList={setChallengeList}
           socket={socket}
         />
-      )}
+      )} */}
     </UserContext.Provider>
   );
 };

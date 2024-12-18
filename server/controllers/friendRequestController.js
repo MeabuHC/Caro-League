@@ -1,4 +1,5 @@
 import friendRequestDAO from "../dao/friendRequestDAO.js";
+import conversationDAO from "../dao/conversationDAO.js";
 import userDAO from "../dao/userDAO.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -91,6 +92,9 @@ export const acceptFriendRequest = catchAsync(async (req, res, next) => {
 
   // Optionally, add users to each other's friends list
   await userDAO.addFriends(userId, friendRequest.senderId);
+
+  //Create a chat if not existed
+  await conversationDAO.create(userId, friendRequest.senderId);
 
   res.status(200).json({
     status: "success",
