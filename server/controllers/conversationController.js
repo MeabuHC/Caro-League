@@ -49,7 +49,7 @@ export const sendMessage = catchAsync(async (req, res, next) => {
   const { message } = req.body;
   const { id: conversationId } = req.params;
 
-  await conversationDAO.sendMessage(
+  const newMessage = await conversationDAO.sendMessage(
     user._id.toString(),
     conversationId,
     message
@@ -57,6 +57,6 @@ export const sendMessage = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: "hello",
+    data: newMessage,
   });
 });

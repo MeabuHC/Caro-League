@@ -19,6 +19,8 @@ import CaroLobbyOnlineMenu from "./components/caro-lobby/CaroLobbyOnlineMenu";
 import CaroMatchmaking from "./components/caro-lobby/CaroMatchmaking";
 import ChatBody from "./components/chats/ChatBody";
 import ChatBodyEmpty from "./components/chats/ChatBodyEmpty";
+import Shop from "./pages/Shop";
+import Friends from "./pages/Friends";
 
 function App() {
   return (
@@ -31,6 +33,24 @@ function App() {
             <Route path="/home" element={<UserHome />} />
             <Route path="profile/:username" element={<ProfileWrapper />} />
             {/* Protected routes */}
+
+            <Route
+              path="/shop"
+              element={
+                <ProtectedRoute>
+                  <Shop />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/friends"
+              element={
+                <ProtectedRoute>
+                  <Friends />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="chats"
@@ -53,7 +73,14 @@ function App() {
               }
             />
 
-            <Route path="/play" element={<CaroLobbyLayout />}>
+            <Route
+              path="/play"
+              element={
+                <ProtectedRoute>
+                  <CaroLobbyLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route
                 index
                 element={

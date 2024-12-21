@@ -14,7 +14,7 @@ import {
 import Modal from "antd/es/modal/Modal.js";
 import styles from "../../styles/components/ProfileCardButtons.module.css";
 import { message } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function ProfileCardButtons({ profileData }) {
   const [friendStatus, setFriendStatus] = useState(null);
@@ -22,6 +22,7 @@ function ProfileCardButtons({ profileData }) {
   const { user } = useUserContext();
   const friends = profileData.userId.friends;
   const friendRequest = profileData?.friendRequest;
+  const navigate = useNavigate();
   useEffect(() => {
     if (profileData.isFriend) {
       setFriendStatus("isFriend");
@@ -131,6 +132,15 @@ function ProfileCardButtons({ profileData }) {
     }
   };
 
+  const handleMessageButton = () => {
+    if (profileData.conversationId)
+      navigate(`/chats/${profileData?.conversationId}`);
+    else
+      message.error(
+        "You must be friends or have talked to each other to send messages!"
+      );
+  };
+
   return (
     <div className="profile-bottom-function-buttons flex flex-row gap-2 text-sm text-[#C7C6C6] hover:text-[#E2E2E2]">
       {friendStatus === "receiverPending" ? (
@@ -187,7 +197,10 @@ function ProfileCardButtons({ profileData }) {
           >
             <PlusCircleOutlined className="text-[20px]" /> Challenge
           </Link>
-          <button className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2">
+          <button
+            onClick={handleMessageButton}
+            className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] hover:text-current transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2"
+          >
             <MessageOutlined className="text-[20px]" /> Message
           </button>
           <button className="h-[48px] bg-[#3C3B39] flex-1 rounded-md px-5 py-2 hover:bg-[#454441] transition-all ease-in-out duration-300 font-semibold flex flex-row justify-center items-center gap-2">

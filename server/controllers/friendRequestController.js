@@ -3,6 +3,18 @@ import conversationDAO from "../dao/conversationDAO.js";
 import userDAO from "../dao/userDAO.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
+
+//Get all friend request of me
+export const getAllFriendRequestMe = catchAsync(async (req, res, next) => {
+  const userId = req.user._id.toString();
+  const data = await friendRequestDAO.findFriendRequests(userId, "pending");
+
+  res.status(200).json({
+    status: "success",
+    data: data,
+  });
+});
+
 // Create a new friend request
 export const createFriendRequest = catchAsync(async (req, res, next) => {
   const { receiverId } = req.body;
@@ -94,7 +106,9 @@ export const acceptFriendRequest = catchAsync(async (req, res, next) => {
   await userDAO.addFriends(userId, friendRequest.senderId);
 
   //Create a chat if not existed
-  await conversationDAO.create(userId, friendRequest.senderId);
+  try {
+    await conversationDAO.create(userId, friendRequest.senderId);
+  } catch {}
 
   res.status(200).json({
     status: "success",

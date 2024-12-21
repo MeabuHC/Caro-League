@@ -4,6 +4,13 @@ import * as authController from "../controllers/authController.js";
 
 const router = express.Router();
 
+//Get all friend requests
+router.get(
+  "/me",
+  authController.protect,
+  friendRequestController.getAllFriendRequestMe
+);
+
 // Create a new friend request
 router.post(
   "/",

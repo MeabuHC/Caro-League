@@ -6,7 +6,7 @@ function ChatSidebar({ conversationList }) {
   return (
     <div className="chat-sidebar bg-[#1F1F1F] h-full w-[367px] rounded-lg">
       {/* Header */}
-      <div className="sidebar-header px-4 py-2 flex flex-row">
+      <div className="sidebar-header px-4 py-2 flex flex-row select-none">
         <p className="text-white text-2xl font-bold ">Chats</p>
         <a className="w-9 h-9 bg-[#474747] hover:bg-[#5A5A5A] active:scale-90 ml-auto rounded-full flex items-center justify-center text-[20px] text-[#E4E6EB] hover:text-[#E4E6EB] decoration-current">
           <FormOutlined />
@@ -19,7 +19,7 @@ function ChatSidebar({ conversationList }) {
             <SearchOutlined />
           </div>
           <input
-            className="bg-inherit w-full pr-6 outline-none text-[#939394] placeholder:text-[#939394] text-base"
+            className="bg-inherit w-full pr-6 outline-none text-[white] placeholder:text-[#939394] text-base"
             placeholder="Find on chat"
           ></input>
         </div>

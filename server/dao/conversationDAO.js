@@ -1,3 +1,4 @@
+import Chat from "../models/chatModel.js";
 import Conversation from "../models/conversationModel.js";
 import redisClient from "../utils/redisClient.js";
 import chatDAO from "./chatDAO.js";
@@ -23,13 +24,19 @@ class ConversationDAO {
     return await newConversation.save();
   }
 
-  // Find all conversations + active status for a specific user
+  // Find all conversations + active status for a specific user, including the last message
   async findConversationsByUser(userId) {
     const conversationList = await Conversation.find({
       $or: [{ user1: userId }, { user2: userId }],
     })
-      .select("-messages")
-      .populate("user1 user2", "avatarUrl username")
+      .populate("user1 user2", "avatarUrl username") // Populate user details
+      .populate({
+        path: "messages", // Populate the 'messages' field
+        options: {
+          sort: { createdAt: -1 }, // Sort messages by creation date in descending order
+        },
+        perDocumentLimit: 1,
+      })
       .lean();
 
     for (const conversation of conversationList) {
@@ -39,20 +46,24 @@ class ConversationDAO {
           : conversation.user1;
 
       const userKey = `user:${otherUser._id.toString()}:status`;
-      const activeSocketsKey = `user:${otherUser._id.toString()}:active_sockets`;
 
       try {
-        // Fetch from Redis
+        // Fetch active status and active sockets from Redis
         const activeStatus = await redisClient.get(userKey);
-        const activeSockets = await redisClient.sMembers(activeSocketsKey);
 
-        // Add the active status and active sockets to the conversation
         conversation.active_status = activeStatus
           ? JSON.parse(activeStatus)
           : null;
-        conversation.active_sockets = activeSockets || [];
+
+        if (conversation.messages.length > 0) {
+          conversation.last_message = conversation.messages[0];
+          conversation.messages = undefined;
+        } else {
+          conversation.last_message = null;
+          conversation.messages = undefined;
+        }
       } catch (err) {
-        console.error("Error fetching data from Redis:", err);
+        console.error("Error fetching data from Redis or last message:", err);
       }
     }
 
@@ -71,19 +82,24 @@ class ConversationDAO {
   }
 
   async getPaginatedMessages(conversationId, page = 1, limit = 20) {
-    const conversation = await Conversation.findById(conversationId).populate({
-      path: "messages",
-      select: "message senderId createdAt",
-      options: {
-        skip: (page - 1) * limit,
-        limit: limit,
-        sort: { createdAt: 1 },
-      },
-      populate: {
-        path: "senderId",
-        select: "username avatarUrl",
-      },
-    });
+    const conversation = await Conversation.findById(conversationId)
+      .populate({
+        path: "messages",
+        select: "message senderId createdAt",
+        options: {
+          skip: (page - 1) * limit,
+          limit: limit,
+          sort: { createdAt: -1 },
+        },
+        populate: {
+          path: "senderId",
+          select: "username avatarUrl",
+        },
+      })
+      .lean();
+    // conversation.messages.sort(
+    //   (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    // );
 
     // Return the messages and the current page for pagination
     return {

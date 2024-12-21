@@ -127,6 +127,12 @@ class UserDAO {
     return onlineFriends;
   }
 
+  async getAllFriendById(userId) {
+    const user = await this.getUserById(userId);
+    const friends = (await User.populate(user, "friends")).friends;
+    return friends;
+  }
+
   async getAllIncomingChallengeById(userId) {
     const incomingChallengesKey = `user:${userId}:incoming_challenges`;
     const incomingChallenges = redisClient.sMembers(incomingChallengesKey);

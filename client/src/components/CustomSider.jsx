@@ -7,6 +7,7 @@ import {
   TeamOutlined,
   MessageOutlined,
   DesktopOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useUserContext } from "../context/UserContext";
@@ -47,6 +48,20 @@ const CustomSider = () => {
       </Link>,
       "3",
       <MessageOutlined style={{ color: "white" }} />
+    ),
+    getItem(
+      <Link to={`/friends`} style={{ color: "white" }}>
+        Friends
+      </Link>,
+      "4",
+      <TeamOutlined style={{ color: "white" }} />
+    ),
+    getItem(
+      <Link to={`/shop`} style={{ color: "white" }}>
+        Shop
+      </Link>,
+      "5",
+      <ShoppingCartOutlined style={{ color: "white" }} />
     ),
   ];
 

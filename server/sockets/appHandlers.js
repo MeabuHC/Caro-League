@@ -158,6 +158,21 @@ const AppHandlers = {
     });
   },
 
+  handleJoinRoom: async (socket, roomIdArray) => {
+    console.log(roomIdArray);
+    roomIdArray.forEach((roomId) => {
+      console.log("Socket join chat " + roomId);
+      socket.join(roomId);
+    });
+  },
+
+  handleSendMessage: async (socket, appNamespace, message, conversationId) => {
+    console.log(message);
+    appNamespace
+      .to(conversationId)
+      .emit("receive-message", message, conversationId);
+  },
+
   disconnect: async (socket, appNamespace, user) => {
     const userKey = `user:${user._id.toString()}:status`;
     const activeSocketsKey = `user:${user._id.toString()}:active_sockets`;
@@ -254,6 +269,19 @@ const appHandlers = async (socket, appNamespace) => {
         challengeObj
       );
     });
+
+    socket.on("join-room", (roomId) =>
+      AppHandlers.handleJoinRoom(socket, roomId)
+    );
+
+    socket.on("send-message", (message, conversationId) =>
+      AppHandlers.handleSendMessage(
+        socket,
+        appNamespace,
+        message,
+        conversationId
+      )
+    );
 
     // Handle disconnect
     socket.on("disconnect", () =>

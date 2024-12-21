@@ -43,6 +43,15 @@ class FriendRequestDAO {
     });
   }
 
+  async findFriendRequests(userId, status) {
+    return await FriendRequest.find({
+      $or: [
+        { senderId: userId, status: status },
+        { receiverId: userId, status: status },
+      ],
+    }).populate("senderId receiverId");
+  }
+
   async changeStatus(friendRequest, status) {
     friendRequest.status = status;
     return await friendRequest.save();

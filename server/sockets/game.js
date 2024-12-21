@@ -264,15 +264,15 @@ class Game {
 
     //Player 1 lp changes
     this.lpChanges.set(playerId[0], {
-      win: 23,
-      lose: -55,
+      win: 50,
+      lose: -50,
       draw: 1,
     });
 
     //Player 2 lp changes
     this.lpChanges.set(playerId[1], {
-      win: 17,
-      lose: -10,
+      win: 50,
+      lose: -50,
       draw: 1,
     });
   }

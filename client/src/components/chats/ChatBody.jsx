@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   PhoneFilled,
   VideoCameraFilled,
@@ -6,19 +6,37 @@ import {
 } from "@ant-design/icons";
 
 import ChatMessages from "./ChatMessages";
-import { useOutletContext, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import { useUserContext } from "../../context/UserContext";
 import { message } from "antd";
 
 function ChatBody() {
   const { id: conversationId } = useParams();
   const { conversationList } = useOutletContext();
-  const { user } = useUserContext();
+  const { user, socket } = useUserContext();
   const [messageContent, setMessageContent] = useState("");
+  const navigate = useNavigate();
 
   const conversation = conversationList.find(
     (conv) => conv._id === conversationId
   );
+
+  // Navigate to chats if the conversation is not found
+  useEffect(() => {
+    if (!conversation) {
+      message.error("Conversation not found!");
+      navigate("/chats");
+    }
+  }, [conversation, navigate]);
+
+  if (!conversation) {
+    return null;
+  }
 
   const friend =
     conversation.user1.username === user.username
@@ -29,11 +47,17 @@ function ChatBody() {
     <div className="pr-[20px] flex-1">
       <div className="chat-messages  bg-[#1F1F1F] h-full rounded-lg">
         {/* Header */}
-        <div className="chat-header w-full h-[68px] py-[10px] px-3 flex flex-row">
+        <Link
+          to={`/profile/${friend.username}`}
+          className="chat-header w-full h-[68px] py-[10px] px-3 flex flex-row select-none"
+        >
           {/* Left header */}
           <div className="chat-user h-full px-[6px] py-[6px] flex flex-row hover:bg-[#474747] cursor-pointer rounded-lg">
             <div className="w-9 h-9 mr-4 relative">
-              <img className="rounded-full" src={friend.avatarUrl} />
+              <img
+                className="rounded-full w-full h-full"
+                src={friend.avatarUrl}
+              />
               {conversation.active_status.online && (
                 <div className="absolute bg-[#31A24C] w-[16px] h-[16px] rounded-full -bottom-0.5 right-0 border-2 border-[#1F1F1F]"></div>
               )}
@@ -62,10 +86,10 @@ function ChatBody() {
               <MoreOutlined />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Body */}
-        <ChatMessages />
+        <ChatMessages key={conversationId} />
       </div>
     </div>
   );
@@ -83,16 +107,17 @@ function timeAgo(timestamp) {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  let timeString = "Active ";
+  let timeString = "";
 
   if (seconds < 60) {
-    timeString += `${seconds} seconds ago`;
+    if (seconds === 0) timeString += `Just Online`;
+    else timeString += `Active ${seconds} seconds ago`;
   } else if (minutes < 60) {
-    timeString += `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    timeString += `Active ${minutes} minute${minutes > 1 ? "s" : ""} ago`;
   } else if (hours < 24) {
-    timeString += `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    timeString += `Active ${hours} hour${hours > 1 ? "s" : ""} ago`;
   } else {
-    timeString += `${days} day${days > 1 ? "s" : ""} ago`;
+    timeString += `Active ${days} day${days > 1 ? "s" : ""} ago`;
   }
 
   return timeString;

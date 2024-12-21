@@ -37,9 +37,16 @@ function ChatConversationList({ conversationList }) {
               <span className="username text-white font-medium text-base">
                 {friend.username}
               </span>
-              <span className="text-[#8B8B8B] whitespace-nowrap overflow-hidden">
-                {/* You: fine kkk <span className="font-bold">·</span> 1 mins */}
-              </span>
+              {conversation.last_message && (
+                <span className="text-[#8B8B8B] whitespace-nowrap overflow-hidden">
+                  {conversation.last_message.senderId === user._id.toString() ||
+                    (conversation.last_message?.senderId?._id ===
+                      user._id.toString() &&
+                      "You: ")}{" "}
+                  {conversation.last_message.message}{" "}
+                  {getTimeAgoSpan(conversation.last_message.createdAt)}
+                </span>
+              )}
             </div>
           </Link>
         );
@@ -49,3 +56,27 @@ function ChatConversationList({ conversationList }) {
 }
 
 export default ChatConversationList;
+
+function getTimeAgoSpan(timestamp) {
+  const currentTime = new Date();
+  const pastTime = new Date(timestamp);
+  const timeDifference = currentTime - pastTime; // difference in milliseconds
+
+  const seconds = Math.floor(timeDifference / 1000);
+  const minutes = Math.floor(timeDifference / (1000 * 60));
+  const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+  const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+  if (minutes < 1) return null; // Do not show anything for 0 sec or less than 1 min
+
+  return (
+    <>
+      <span className="font-bold">·</span>{" "}
+      {minutes < 60
+        ? `${minutes} min${minutes !== 1 ? "s" : ""}`
+        : hours < 24
+        ? `${hours} hr${hours !== 1 ? "s" : ""}`
+        : `${days} day${days !== 1 ? "s" : ""}`}
+    </>
+  );
+}

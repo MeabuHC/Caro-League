@@ -28,6 +28,10 @@ router
   .get(authController.protect, userController.getAllOnlineFriendMe);
 
 router
+  .route("/me/friends")
+  .get(authController.protect, userController.getAllFriendMe);
+
+router
   .route("/me/challenges")
   .get(authController.protect, userController.getAllIncomingChallengeMe);
 

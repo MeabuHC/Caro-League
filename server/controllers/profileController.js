@@ -2,6 +2,7 @@ import GameStats from "../models/gameStatsModel.js"; // Adjust path as needed
 import GameHistory from "../models/gameHistoryModel.js"; // Adjust path as needed
 import mongoose from "mongoose";
 import userDAO from "../dao/userDAO.js";
+import conversationDAO from "../dao/conversationDAO.js";
 import gameStatsDAO from "../dao/gameStatsDAO.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
@@ -112,6 +113,7 @@ export const getProfileData = catchAsync(async (req, res, next) => {
       );
 
       if (friendRequest) profileData[0].friendRequest = friendRequest;
+      //If friend
       if (
         user[0].friends.find(
           (friendId) => friendId.toString() === viewer._id.toString()
@@ -119,6 +121,15 @@ export const getProfileData = catchAsync(async (req, res, next) => {
       )
         profileData[0].isFriend = true;
     }
+
+    //Find conversation id
+    const conversation = await conversationDAO.findConversation(
+      viewer._id.toString(),
+      user[0]._id.toString()
+    );
+
+    if (conversation)
+      profileData[0].conversationId = conversation._id.toString();
 
     const profileActiveStatus = JSON.parse(
       await redisClient.get(`user:${userId}:status`)

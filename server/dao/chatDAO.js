@@ -16,7 +16,7 @@ class ChatDAO {
 
     await newChat.save();
 
-    return newChat;
+    return await newChat.populate("senderId");
   }
 }
 

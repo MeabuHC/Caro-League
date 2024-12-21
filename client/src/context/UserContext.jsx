@@ -5,6 +5,7 @@ import { message } from "antd";
 import { io } from "socket.io-client";
 import LoadingSpin from "../components/LoadingSpin";
 import ChallengeBox from "../components/ChallengeBox";
+import { useLocation } from "react-router-dom";
 
 const UserContext = createContext();
 
@@ -14,6 +15,7 @@ export const UserProvider = ({ children }) => {
   const [refetch, setRefetch] = useState(true);
   const [socket, setSocket] = useState(null);
   const [challengeList, setChallengeList] = useState([]);
+  const location = useLocation();
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -140,13 +142,13 @@ export const UserProvider = ({ children }) => {
       {children}
 
       {/* Challenge Box */}
-      {/* {user && (
+      {user && !location.pathname.startsWith("/chats") && (
         <ChallengeBox
           challengeList={challengeList}
           setChallengeList={setChallengeList}
           socket={socket}
         />
-      )} */}
+      )}
     </UserContext.Provider>
   );
 };
