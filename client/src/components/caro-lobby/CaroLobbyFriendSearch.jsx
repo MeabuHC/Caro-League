@@ -133,12 +133,12 @@ function CaroLobbyFriendSearch() {
 
         <div className="play_link text-center text-[#C1C1C0]">
           <p>Friends can directly challenge you anytime at:</p>
-          <span className="font-semibold mr-2">{`http://caroleague.com/play/online/friend?opponent=${user.username}`}</span>
+          <span className="font-semibold mr-2">{`https://caro-league-frontend.onrender.com/play/online/friend?opponent=${user.username}`}</span>
           <CopyOutlined
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(
-                  `http://caroleague.com/play/online/friend?opponent=${user.username}`
+                  `https://caro-league-frontend.onrender.com/play/online/friend?opponent=${user.username}`
                 );
                 message.success("Copy success!");
               } catch {
