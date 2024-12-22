@@ -23,9 +23,12 @@ export const CaroSocketProvider = ({ children }) => {
       );
 
       // Now create the socket connection
-      const socketConnection = io("http://localhost:8000/caro", {
-        withCredentials: true,
-      });
+      const socketConnection = io(
+        "https://caro-league-backend.onrender.com/caro",
+        {
+          withCredentials: true,
+        }
+      );
 
       setSocket(socketConnection);
     } catch (error) {

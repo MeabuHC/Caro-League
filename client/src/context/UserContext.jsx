@@ -34,9 +34,12 @@ export const UserProvider = ({ children }) => {
       //Establish socket
       if (!socket) {
         // Now create the socket connection
-        const socketConnection = io("http://localhost:8000/app", {
-          withCredentials: true,
-        });
+        const socketConnection = io(
+          "https://caro-league-backend.onrender.com/app",
+          {
+            withCredentials: true,
+          }
+        );
 
         socketConnection.on("connect", () => {
           socketConnection.on("receive-challenge-request", (request) => {

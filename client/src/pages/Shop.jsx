@@ -59,7 +59,7 @@ function Shop() {
             >
               <img
                 className="w-[120px] h-[120px]"
-                src={`http://localhost:8000/img/ranks/${rank.toLowerCase()}.png`}
+                src={`https://caro-league-backend.onrender.com/img/ranks/${rank.toLowerCase()}.png`}
               />
               <span className="rank-title text-white font-semibold text-xl">
                 {rank}
