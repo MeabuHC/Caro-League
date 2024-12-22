@@ -29,7 +29,7 @@ app.use(mongoSanitze());
 // Use CORS Middleware
 app.use(
   cors({
-    origin: "http://localhost:8080",
+    origin: "*", // Allow all origins
     credentials: true, // Allow cookies to be sent
   })
 );

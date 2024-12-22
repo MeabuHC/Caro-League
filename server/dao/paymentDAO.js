@@ -117,8 +117,9 @@ class PaymentDAO {
             },
           ],
           application_context: {
-            return_url: "http://localhost:8080/payment-success",
-            cancel_url: "http://localhost:8080/shop",
+            return_url:
+              "https://caro-league-frontend.onrender.com/payment-success",
+            cancel_url: "https://caro-league-frontend.onrender.com/shop",
             shipping_preference: "NO_SHIPPING",
             user_action: "PAY_NOW",
             brand_name: "Caro League",
