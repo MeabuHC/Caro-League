@@ -21,6 +21,7 @@ import ChatBody from "./components/chats/ChatBody";
 import ChatBodyEmpty from "./components/chats/ChatBodyEmpty";
 import Shop from "./pages/Shop";
 import Friends from "./pages/Friends";
+import SuccessPayment from "./pages/SuccessPayment";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route index element={<GuestHome />} />
             <Route path="/home" element={<UserHome />} />
             <Route path="profile/:username" element={<ProfileWrapper />} />
+
             {/* Protected routes */}
 
             <Route
@@ -131,6 +133,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email/:token" element={<Setup />} />
+          <Route path="/payment-success" element={<SuccessPayment />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </UserProvider>

@@ -18,6 +18,25 @@ class GameStatsDAO {
     return gameStats;
   }
 
+  async updateUserCurrentSeasonRank(userId, newRank) {
+    const currentSeasonId = (await seasonDAO.getCurrentActiveSeason()).id;
+    const gameStats = await GameStats.findOne({
+      userId,
+      seasonId: currentSeasonId,
+    });
+
+    const newRankObject = await rankingDAO.getRankByRankName(newRank);
+
+    gameStats.rankId = newRankObject._id;
+    gameStats.lp = 20;
+    gameStats.currentDivision = newRankObject.divisions?.[0] || "";
+
+    // Save the updated gameStats
+    await gameStats.save();
+
+    return gameStats;
+  }
+
   // Method to create game stats for a specific user ID
   async createGameStatsForUserId(userId) {
     const currentSeasonId = (await seasonDAO.getCurrentActiveSeason()).id;
@@ -136,14 +155,14 @@ class GameStatsDAO {
     }
 
     //Update both player ranks
-    await this.updateRank(winnerStats);
-    await this.updateRank(loserStats);
+    await this.upRank(winnerStats);
+    await this.upRank(loserStats);
 
     await winnerStats.save();
     await loserStats.save();
   }
 
-  async updateRank(playerStats) {
+  async upRank(playerStats) {
     // Find index of current division
     const divisionIndex = playerStats.rankId.divisions.indexOf(
       playerStats.currentDivision

@@ -14,7 +14,7 @@ function CaroLobbyMainMenu() {
     navigate("/play/online");
   };
   const handlePlayBotsClick = () => {
-    navigate("/play/computer");
+    navigate("/not-found");
   };
   const handlePlayFriendsClick = () => {
     navigate("/play/online/friend");
