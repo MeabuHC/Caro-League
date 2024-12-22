@@ -29,8 +29,8 @@ app.use(mongoSanitze());
 // Use CORS Middleware
 app.use(
   cors({
-    origin: "*", // Allow all origins
-    credentials: true, // Allow cookies to be sent
+    origin: "https://caro-league-frontend.onrender.com", // Allow your frontend origin
+    credentials: true, // Allow cookies to be sent with the request
   })
 );
 
