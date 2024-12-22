@@ -23,10 +23,16 @@ const createSendTokens = async (user, res) => {
 
   res.cookie("accessToken", accessToken, {
     maxAge: parseExpiration(process.env.ACCESS_TOKEN_EXPIRATION),
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
   });
 
   res.cookie("refreshToken", refreshToken, {
     maxAge: parseExpiration(process.env.REFRESH_TOKEN_EXPIRATION),
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
   });
 
   res.status(200).json({
@@ -63,6 +69,9 @@ export const refreshToken = catchAsync(async (req, res, next) => {
 
   res.cookie("accessToken", newAccessToken, {
     maxAge: parseExpiration(process.env.ACCESS_TOKEN_EXPIRATION),
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
   });
 
   res.status(200).json({
