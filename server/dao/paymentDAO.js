@@ -55,12 +55,10 @@ class PaymentDAO {
       console.log(response.data);
       console.log(response.data.expires_in);
 
-      await redisClient.set(
-        "paypal_access_token",
-        response.data.access_token,
-        "EX",
-        response.data.expires_in
-      );
+      await redisClient.set("paypal_access_token", response.data.access_token, {
+        EX: response.data.expires_in,
+        NX: true,
+      });
 
       return response.data.access_token;
     } catch {
