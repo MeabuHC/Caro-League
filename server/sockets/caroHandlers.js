@@ -150,7 +150,7 @@ const Caro = {
         caroNamespace,
         gameMap,
         oldGame.mode,
-        oldGame.time,
+        oldGame.turnDuration,
         true
       );
       // Move all players to new game

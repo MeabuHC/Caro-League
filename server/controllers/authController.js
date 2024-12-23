@@ -93,7 +93,7 @@ export const signup = catchAsync(async (req, res, next) => {
   const emailToken = signToken({ email: email }, "email");
   await sendVerifyEmail(
     email,
-    `http://localhost:8080/verify-email/${emailToken}`
+    `https://caro-league-frontend.onrender.com/verify-email/${emailToken}`
   );
   res.status(200).json({
     status: "success",

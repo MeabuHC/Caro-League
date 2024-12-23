@@ -12,8 +12,8 @@ class Game {
     seasonId,
     caroNamespace,
     gameMap,
-    mode = 0,
-    time = 10,
+    mode = "0",
+    time = "10",
     isRematch = false
   ) {
     this.validateGameOptions({ mode, time });
