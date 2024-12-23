@@ -52,6 +52,9 @@ class PaymentDAO {
         },
       });
 
+      console.log(response.data);
+      console.log(response.data.expires_in);
+
       await redisClient.set(
         "paypal_access_token",
         response.data.access_token,
