@@ -6,6 +6,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 
 function Shop() {
   const [loading, setLoading] = useState(false); // Track loading state
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   const handleBuyClick = async (itemName) => {
     try {
@@ -59,7 +60,7 @@ function Shop() {
             >
               <img
                 className="w-[120px] h-[120px]"
-                src={`https://caro-league-backend.onrender.com/img/ranks/${rank.toLowerCase()}.png`}
+                src={`${baseUrl}/img/ranks/${rank.toLowerCase()}.png`}
               />
               <span className="rank-title text-white font-semibold text-xl">
                 {rank}

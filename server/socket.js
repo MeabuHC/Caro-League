@@ -5,7 +5,7 @@ import appHandlers from "./sockets/appHandlers.js";
 export function initSocket(server) {
   const io = new Server(server, {
     cors: {
-      origin: "https://caro-league-frontend.onrender.com",
+      origin: process.env.FRONTEND_BASE_URL,
       methods: ["GET", "POST"],
       credentials: true,
     },

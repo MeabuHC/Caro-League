@@ -58,7 +58,7 @@ function ChatBody() {
                 className="rounded-full w-full h-full"
                 src={friend.avatarUrl}
               />
-              {conversation.active_status.online && (
+              {conversation.active_status?.online && (
                 <div className="absolute bg-[#31A24C] w-[16px] h-[16px] rounded-full -bottom-0.5 right-0 border-2 border-[#1F1F1F]"></div>
               )}
             </div>
@@ -68,9 +68,11 @@ function ChatBody() {
                 {friend.username}
               </span>
               <span className="text-[#8B8B8B] text-[0.8125rem] leading-[16px] whitespace-nowrap overflow-hidden">
-                {conversation.active_status.online
-                  ? "Online Now"
-                  : timeAgo(conversation.active_status.last_active)}
+                {conversation.active_status
+                  ? conversation.active_status.online
+                    ? "Online Now"
+                    : timeAgo(conversation.active_status.last_active)
+                  : ""}
               </span>
             </div>
           </div>

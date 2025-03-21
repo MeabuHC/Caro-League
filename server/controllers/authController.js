@@ -93,8 +93,9 @@ export const signup = catchAsync(async (req, res, next) => {
   const emailToken = signToken({ email: email }, "email");
   await sendVerifyEmail(
     email,
-    `https://caro-league-frontend.onrender.com/verify-email/${emailToken}`
+    `${process.env.FRONTEND_BASE_URL}/verify-email/${emailToken}`
   );
+
   res.status(200).json({
     status: "success",
     message: "Verification email sent! Please check your inbox.",
