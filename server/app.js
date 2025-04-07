@@ -14,8 +14,33 @@ import gameStatsRoutes from "./routes/gameStatsRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import errorController from "./controllers/errorController.js";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 const app = new express();
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Caro League API Project for MongoDB",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        url: "http://localhost:8000/", // Local development server
+      },
+      {
+        url: "https://caro-league-backend.onrender.com/", // Production server
+      },
+    ],
+  },
+  apis: ["./routes/*.js"],
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 //Logging
 app.use(morgan("dev"));
