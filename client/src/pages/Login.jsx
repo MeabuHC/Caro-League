@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import SocialLinks from "../components/SocialLinks";
+import AuthButtonList from "../components/AuthButtonList";
 import AuthForm from "../components/AuthForm";
 import OrWithEmail from "../components/OrWithEmail";
 import styles from "../styles/pages/Login.module.css";
 import delay from "../utils/delay";
 import axios from "axios";
 import { useUserContext } from "../context/UserContext";
+import AuthLoginGoogleButton from "../components/AuthLoginGoogleButton";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -32,24 +33,6 @@ const Login = () => {
     email: "",
     password: "",
   });
-
-  const socialLinks = [
-    {
-      href: "https://www.google.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/google.svg",
-      altText: "Google",
-    },
-    {
-      href: "https://www.facebook.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/facebook.svg",
-      altText: "Facebook",
-    },
-    {
-      href: "https://twitter.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/twitter.svg",
-      altText: "Twitter",
-    },
-  ];
 
   const inputConfigurations = [
     {
@@ -77,7 +60,6 @@ const Login = () => {
       });
 
       // If success
-
       await delay(1000);
       setRefetch(true);
       navigate("/home");
@@ -98,7 +80,12 @@ const Login = () => {
       <div className={styles.left}></div>
       <div className={styles.right}>
         <div className={styles.login_form}>
-          <SocialLinks links={socialLinks} />
+          <AuthButtonList>
+            <AuthLoginGoogleButton
+              setLoading={setLoading}
+              setMessages={setMessages}
+            />
+          </AuthButtonList>
           <OrWithEmail />
           <AuthForm
             inputConfigurations={inputConfigurations}

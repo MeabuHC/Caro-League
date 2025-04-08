@@ -3,6 +3,8 @@ import userDAO from "../dao/userDAO.js";
 import gameStatsDAO from "../dao/gameStatsDAO.js";
 import AppError from "../utils/appError.js";
 import catchAsync from "../utils/catchAsync.js";
+import admin from "firebase-admin";
+
 import {
   signupSchema,
   loginSchema,
@@ -173,6 +175,36 @@ export const login = catchAsync(async (req, res, next) => {
   user.password = undefined;
 
   await createSendTokens(user, res);
+});
+
+export const loginGoogle = catchAsync(async (req, res, next) => {
+  const { idToken } = req.body;
+
+  try {
+    // Verify the ID token
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    console.log(decodedToken); // Contains user information
+
+    var user = await userDAO.findUserByEmail(decodedToken.email);
+    if (!user) {
+      const userData = {
+        email: decodedToken.email,
+        username: await userDAO.generateRandomUsername(),
+        password: "randompassword123!a",
+        avatarUrl: decodedToken.picture,
+      };
+      user = await userDAO.createUser(userData);
+      await gameStatsDAO.createGameStatsForUserId(user._id);
+    }
+
+    user.password = undefined;
+
+    // Proceed with authentication logic
+    await createSendTokens(user, res);
+  } catch (error) {
+    console.error("Error verifying ID token:", error);
+    return next(new AppError("Unauthorized", 401));
+  }
 });
 
 export const logout = (req, res) => {

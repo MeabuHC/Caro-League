@@ -3,6 +3,7 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import mongoSanitze from "express-mongo-sanitize";
 import cors from "cors";
+import admin from "firebase-admin";
 
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -16,6 +17,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import errorController from "./controllers/errorController.js";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import serviceAccountKey from "./serviceAccountKey.js";
 
 const app = new express();
 
@@ -41,6 +43,10 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccountKey),
+});
 
 //Logging
 app.use(morgan("dev"));

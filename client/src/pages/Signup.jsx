@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import SocialLinks from "../components/SocialLinks";
+import AuthButtonList from "../components/AuthButtonList";
 import AuthForm from "../components/AuthForm";
 import OrWithEmail from "../components/OrWithEmail";
 import styles from "../styles/pages/Signup.module.css"; // Adjust path if needed
 import delay from "../utils/delay";
 import axios from "axios";
+import AuthLoginGoogleButton from "../components/AuthLoginGoogleButton";
 
 const Signup = () => {
   const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -19,24 +20,6 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     email: "",
   });
-
-  const socialLinks = [
-    {
-      href: "https://www.google.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/google.svg",
-      altText: "Google",
-    },
-    {
-      href: "https://www.facebook.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/facebook.svg",
-      altText: "Facebook",
-    },
-    {
-      href: "https://twitter.com/",
-      imgSrc: "https://pro-theme.com/html/teamhost/assets/img/twitter.svg",
-      altText: "Twitter",
-    },
-  ];
 
   const inputConfigurations = [
     {
@@ -79,7 +62,12 @@ const Signup = () => {
   return (
     <div className={styles.body}>
       <div className={styles.signup_container}>
-        <SocialLinks links={socialLinks} />
+        <AuthButtonList>
+          <AuthLoginGoogleButton
+            setLoading={setLoading}
+            setMessages={setMessages}
+          />
+        </AuthButtonList>
         <OrWithEmail />
         <AuthForm
           inputConfigurations={inputConfigurations}

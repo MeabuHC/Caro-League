@@ -3,6 +3,7 @@ import User from "../models/userModel.js";
 import APIFeatures from "../utils/APIFeatures.js";
 import AppError from "../utils/appError.js";
 import redisClient from "../utils/redisClient.js";
+import crypto from "crypto";
 
 class UserDAO {
   async getAllUsers(queryObj) {
@@ -138,6 +139,25 @@ class UserDAO {
     const incomingChallenges = redisClient.sMembers(incomingChallengesKey);
 
     return incomingChallenges;
+  }
+
+  // Function to generate a unique username
+  async generateRandomUsername() {
+    let username;
+    let isTaken = true;
+
+    while (isTaken) {
+      const length = Math.floor(Math.random() * 6) + 5; // random number from 5 to 10
+      username = crypto
+        .randomBytes(Math.ceil(length / 2))
+        .toString("hex")
+        .slice(0, length);
+
+      const existingUser = await User.findOne({ username });
+      if (!existingUser) isTaken = false;
+    }
+
+    return username;
   }
 }
 

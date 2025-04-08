@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.route("/signup").post(rateLimiters.signupLimiter, authController.signup);
 router.route("/login").post(authController.login);
+router.route("/loginGoogle").post(authController.loginGoogle);
 router.route("/logout").post(authController.logout);
 router.route("/verify-email").post(authController.verifyEmail);
 router.route("/setup").post(authController.setup);
