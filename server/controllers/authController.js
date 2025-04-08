@@ -208,9 +208,14 @@ export const loginGoogle = catchAsync(async (req, res, next) => {
 });
 
 export const logout = (req, res) => {
-  // Clear the JWT cookies
-  res.cookie("accessToken", "", { maxAge: 1 });
-  res.cookie("refreshToken", "", { maxAge: 1 });
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  };
+
+  res.clearCookie("accessToken", cookieOptions);
+  res.clearCookie("refreshToken", cookieOptions);
 
   res.status(200).json({
     status: "success",
