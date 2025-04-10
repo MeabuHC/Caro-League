@@ -10,9 +10,13 @@ import { v4 as uuidv4 } from "uuid";
 import seasonDAO from "../dao/seasonDAO.js";
 import userDAO from "../dao/userDAO.js";
 import redisClient from "../utils/redisClient.js";
+import geminiService from "../utils/geminiAPI.js";
+import ComputerGameMap from "./computerGameMap.js";
+import ComputerGame from "./computerGame.js";
 
 // Saving game
 let gameMap = new GameMap();
+let computerGameMap = new ComputerGameMap();
 
 //--------------- NAMESPACE FOR MAIN METHOD --------------//
 const Caro = {
@@ -88,10 +92,36 @@ const Caro = {
     }
   },
 
+  //Send game object to requester
+  reconnectComputerGame: (socket, gameId, userId) => {
+    const gameObj = computerGameMap.games.get(gameId);
+    if (
+      gameObj &&
+      gameObj.state === "in-progress" &&
+      gameObj.playerStats.userId._id.toString() == userId
+    ) {
+      gameObj.reconnectGame(socket);
+    }
+    //Game not existed or game already completed
+    else {
+      socket.emit(
+        "receive-computer-game-object",
+        null,
+        "This game does not exist or has already been completed."
+      );
+    }
+  },
+
   // Update the game board with the player's move
   updateGameBoard: async (gameId, userId, [index_X, index_Y]) => {
     const gameObj = gameMap.games.get(gameId);
     gameObj.makeMove([index_X, index_Y], userId);
+  },
+
+  // Update the game board with the player's move
+  updateComputerGameBoard: async (gameId, [index_X, index_Y]) => {
+    const gameObj = computerGameMap.games.get(gameId);
+    gameObj.makeMove([index_X, index_Y]);
   },
 
   handleDisconnect: (socket, caroNamespace, userId) => {
@@ -254,6 +284,49 @@ const Caro = {
       //Send to both player
     }
   },
+
+  handleStartComputerMatch: async (
+    socket,
+    caroNamespace,
+    playerStats,
+    time,
+    mode,
+    rank,
+    symbol
+  ) => {
+    try {
+      const response = await geminiService.ask(
+        "Are you ready to play Caro? Please answer with only Yes or No."
+      );
+      console.log(response);
+
+      const uniqueId = await createUniqueGameId(caroNamespace);
+
+      let playerSymbol = symbol;
+      if (symbol === "Random") {
+        playerSymbol = Math.random() < 0.5 ? "X" : "O";
+      }
+
+      const newComputerGame = new ComputerGame(
+        uniqueId,
+        computerGameMap,
+        mode,
+        time,
+        rank,
+        playerSymbol,
+        playerStats,
+        socket,
+        caroNamespace
+      );
+
+      computerGameMap.addGame(newComputerGame);
+
+      socket.emit("navigate-game", newComputerGame.id);
+    } catch (error) {
+      console.log(error);
+      socket.emit("error", "Failed to prepare bot opponent. Please try again.");
+    }
+  },
 };
 
 //---------- UTILS ------------------//
@@ -355,9 +428,19 @@ const caroHandlers = async (socket, caroNamespace) => {
       Caro.reconnectGame(socket, gameId, userId);
     });
 
+    socket.on("reconnect-computer-game", (gameId) => {
+      console.log("Reconnect game request!");
+      Caro.reconnectComputerGame(socket, gameId, userId);
+    });
+
     // Sending player move to the other player
     socket.on("makeMove", async (gameId, index) => {
       await Caro.updateGameBoard(gameId, userId, index);
+    });
+
+    // Sending player move
+    socket.on("makeMoveComputer", async (gameId, index) => {
+      await Caro.updateComputerGameBoard(gameId, index);
     });
 
     socket.on("send-message", (gameId, message) => {
@@ -398,6 +481,23 @@ const caroHandlers = async (socket, caroNamespace) => {
         caroNamespace,
         userId,
         senderId
+      );
+    });
+
+    //Handle start computer match
+    socket.on("start-computer-match", async ({ time, mode, rank, symbol }) => {
+      let playerStats = await GameStatsDAO.getCurrentSeasonGameStatsFromUserId(
+        decoded.id
+      ); //Refetch again
+
+      await Caro.handleStartComputerMatch(
+        socket,
+        caroNamespace,
+        playerStats,
+        time,
+        mode,
+        rank,
+        symbol
       );
     });
 

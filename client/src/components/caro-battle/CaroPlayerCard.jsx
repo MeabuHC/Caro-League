@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import black_avatar from "../../assets/images/black_400.png";
 import white_avatar from "../../assets/images/white_400.png";
+import bot_avatar from "../../assets/images/bot_avatar.png";
 import matchmaking_avatar from "../../assets/gif/seeksquare@3x.gif";
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -55,6 +56,13 @@ function CaroPlayerCard({
       rankImageUrl: null,
       rankTier: "",
       currentDivision: "",
+    },
+    bot: {
+      username: "Coach Danny",
+      avatarUrl: bot_avatar,
+      rankImageUrl: baseUrl + "/img/ranks/" + playerStats?.rankTier + ".png",
+      rankTier: playerStats?.rankTier || "",
+      currentDivision: playerStats?.currentDivision || "",
     },
   };
 

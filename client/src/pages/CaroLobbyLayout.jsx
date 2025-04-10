@@ -14,7 +14,11 @@ function CaroLobbyLayout() {
   const navigate = useNavigate();
   const [selectedTime, setSelectedTime] = useState(10);
   const [selectedMode, setSelectedMode] = useState(0);
+  const [selectedRank, setSelectedRank] = useState("Bronze");
+  const [selectedSymbol, setSelectedSymbol] = useState("X");
+
   const isNewGame = location.pathname === "/play/online/new";
+  const isPlayWithBot = location.pathname.startsWith("/play/computer");
 
   function resetSelected() {
     setSelectedMode(0);
@@ -92,7 +96,12 @@ function CaroLobbyLayout() {
           <CaroTableSpectator moveHistory={{ boardState: createBoard() }} />
         </div>
         <div className="opponent-card self-start flex flex-row w-full items-center flex-1">
-          {isNewGame ? (
+          {isPlayWithBot ? (
+            <CaroPlayerCard
+              type="bot"
+              playerStats={{ rankTier: selectedRank }}
+            />
+          ) : isNewGame ? (
             <CaroPlayerCard type="matchmaking" />
           ) : (
             <CaroPlayerCard type="opponent" />
@@ -108,6 +117,10 @@ function CaroLobbyLayout() {
           setSelectedTime,
           selectedMode,
           setSelectedMode,
+          selectedRank,
+          setSelectedRank,
+          selectedSymbol,
+          setSelectedSymbol,
         }}
       />
     </div>

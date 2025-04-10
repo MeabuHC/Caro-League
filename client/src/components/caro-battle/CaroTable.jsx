@@ -13,6 +13,7 @@ function CaroTable({
   pattern,
   isGameOver,
   newMovePosition = null,
+  type = "default",
 }) {
   const [hoveredCell, setHoveredCell] = useState(null);
   const { socket } = useCaroSocket();
@@ -35,7 +36,9 @@ function CaroTable({
     ) {
       console.log("Make move!");
       setHoveredCell(null);
-      socket.emit("makeMove", gameId, [i, y]);
+      if (type === "default") socket.emit("makeMove", gameId, [i, y]);
+      else if (type === "computer")
+        socket.emit("makeMoveComputer", gameId, [i, y]);
     }
   }
 

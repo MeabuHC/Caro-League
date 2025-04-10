@@ -22,6 +22,9 @@ import ChatBodyEmpty from "./components/chats/ChatBodyEmpty";
 import Shop from "./pages/Shop";
 import Friends from "./pages/Friends";
 import SuccessPayment from "./pages/SuccessPayment";
+import CaroLobbyComputer from "./components/caro-lobby/CaroLobbyComputer";
+import CaroMatchmakingComputer from "./components/caro-lobby/CaroMatchmakingComputer";
+import CaroComputerBattle from "./pages/CaroComputerBattle";
 
 function App() {
   return (
@@ -118,13 +121,39 @@ function App() {
                 }
               />
 
-              <Route path="computer" element={<CaroLobbyMainMenu />} />
+              <Route
+                path="computer"
+                element={
+                  <ProtectedRoute>
+                    <CaroLobbyComputer />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="computer/new"
+                element={
+                  <ProtectedRoute>
+                    <CaroSocketProvider>
+                      <CaroMatchmakingComputer />
+                    </CaroSocketProvider>
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             <Route
               path="play/game/live/:gameId"
               element={
                 <CaroSocketProvider>
                   <CaroBattleWrapper />
+                </CaroSocketProvider>
+              }
+            />
+
+            <Route
+              path="play/game/computer/:gameId"
+              element={
+                <CaroSocketProvider>
+                  <CaroComputerBattle />
                 </CaroSocketProvider>
               }
             />

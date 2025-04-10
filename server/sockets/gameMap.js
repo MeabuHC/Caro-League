@@ -38,12 +38,6 @@ class GameMap {
       this.games.delete(gameObj.id);
     }
   }
-
-  updateGame(gameObj) {
-    if (this.games.has(gameObj.id)) {
-      this.games.set(gameObj.id, gameObj);
-    }
-  }
 }
 
 export default GameMap;

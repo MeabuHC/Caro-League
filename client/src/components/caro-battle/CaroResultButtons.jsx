@@ -24,7 +24,7 @@ function CaroResultButtons({
   const navigate = useNavigate();
 
   const handleBackToLobby = () => {
-    navigate("/play/online");
+    navigate("/play");
     if (waitingRematch) socket.emit("cancel-rematch-request", gameId);
     if (receiveRematch) socket.emit("decline-rematch");
   };
