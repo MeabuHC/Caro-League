@@ -60,7 +60,11 @@ function CaroPlayerCard({
     bot: {
       username: "Coach Danny",
       avatarUrl: bot_avatar,
-      rankImageUrl: baseUrl + "/img/ranks/" + playerStats?.rankTier + ".png",
+      rankImageUrl:
+        baseUrl +
+        "//img/ranks/" +
+        (playerStats?.rankTier || "").toLowerCase() +
+        ".png",
       rankTier: playerStats?.rankTier || "",
       currentDivision: playerStats?.currentDivision || "",
     },
