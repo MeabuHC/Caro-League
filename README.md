@@ -22,7 +22,7 @@
 - 🧑‍🤝‍🧑 **Friends System** – Add/remove friends, see their status
 - 🟢 **Online Status** – Real-time user presence tracking
 - 👤 **Player Profiles** – View profile, match stats, and ranking history
-- 💰 **Pay-to-Rank** – Spend in-game coins to boost your rank
+- 💰 **Pay-to-Rank** – Spend money to boost your rank
 - 📜 **Ranking History** – Track your past performances and progression
 - 🔐 **Authentication** – Register, login, JWT-secured sessions
 
