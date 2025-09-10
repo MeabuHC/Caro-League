@@ -38,6 +38,10 @@
 
 - 📜 **Ranking History** – Track your past performances and progression
 - 🔐 **Authentication** – Register, login, JWT-secured sessions
+- 📖 **Match History & Replay** – Review your previous matches, step through moves, and analyze gameplay
+<img width="1919" height="904" alt="image" src="https://github.com/user-attachments/assets/95ca3f7f-b08d-499d-8b1a-453842d11286" />
+ 
+
 
 ---
 
